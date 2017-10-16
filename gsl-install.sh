@@ -9,3 +9,9 @@ make check
 make install
 echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/homes/$(whoami)/gsl/lib/" >> ~/.bashrc
 echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/homes/$(whoami)/gsl/lib/" >> ~/.zshrc
+if [ ! -f ~/.zshrc ]; then
+    source ~/.bashrc
+else
+    source ~/.zshrc
+fi
+

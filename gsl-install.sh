@@ -7,3 +7,5 @@ cd gsl-2.4
 make
 make check
 make install
+echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/homes/$(whoami)/gsl/lib/" >> ~/.bashrc
+echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/homes/$(whoami)/gsl/lib/" >> ~/.zshrc

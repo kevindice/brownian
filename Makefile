@@ -1,12 +1,11 @@
 ROOT=brownTown3d
-ME := $(shell whoami)
 default: gnu
 
 debug:
 	g++ -ggdb -Wall $(ROOT).C -o $(ROOT) -lm -lgsl -lgslcblas
 
 gnu:
-	g++ -O3 -Wall -Wno-strict-overflow -Wno-unused-result -march=native -mfpmath=sse $(ROOT).C -o $(ROOT) -lm -I/homes/$(ME)/gsl/include/ -L/homes/$(ME)/gsl/lib -lgsl -lgslcblas
+	g++ -O3 -Wall -Wno-strict-overflow -Wno-unused-result -march=native -mfpmath=sse $(ROOT).C -o $(ROOT) -lm -I$(HOME)/gsl/include/ -L$(HOME)/gsl/lib -lgsl -lgslcblas
 
 clean:
 	rm -f $(ROOT) $(ROOT)

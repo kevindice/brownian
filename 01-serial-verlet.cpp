@@ -61,6 +61,14 @@ int main(int argc, char* argv[]) {
     // Get the force of the environment.
     for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
 
+    
+    for (int i = 0; i < n; i++) {
+      for (int j = i+1; j < n; j++) {
+        // build verlet list here
+      }
+    }
+
+
     // Particle-particle interactions.
     for (int i = 0; i < n; i++) {
       for (int j = i+1; j < n; j++) {

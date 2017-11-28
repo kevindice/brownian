@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
   double dt = strtod(argv[5],NULL);
   double kT = strtod(argv[6],NULL);
   long int steps = atol(argv[7]);
-  long int seed0 = atol(argv[8]);
+  //long int seed0 = atol(argv[8]);
   const char* outputFormat = argv[9];
   int outputPeriod = atoi(argv[10]);
   const char* outputPrefix = argv[argc-1];
@@ -34,9 +34,9 @@ int main(int argc, char* argv[]) {
   printf("dt %g kT %g steps %ld outputPeriod %d\n", dt, kT, steps, outputPeriod);
 
   double beta = 1.0/kT;
-  long seed = (unsigned int)time((time_t *)NULL) + seed0*seed0*seed0;
+  //long seed = (unsigned int)time((time_t *)NULL) + seed0*seed0*seed0;
   // REMOVING SEED FOR TESTING: Random rando(seed);
-  Random rando;
+  Random rando(0);
 
   // Number of particles.
   const int n = initCoord.length();

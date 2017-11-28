@@ -1,6 +1,7 @@
 ///////////////////////////////////////////////////////////////////////
 // Author: Jeff Comer <jeffcomer at gmail>
-
+// Modified by: Kevin Dice <kmdice at ksu dot edu>
+//
 #include <ctime>
 #include "useful.H"
 #include "PiecewiseCubic.H"
@@ -8,6 +9,9 @@
 #include "RandomGsl.H"
 #include "BaseGrid.H"
 #include "TrajectoryWriter.H"
+
+#define MAX_INTERACTION_RADIUS 12
+#define VERLET_REBUILD_INT 1
 
 int main(int argc, char* argv[]) {
   if (argc != 12) {
@@ -42,6 +46,8 @@ int main(int argc, char* argv[]) {
   const int n = initCoord.length();
   Vector3* pos = new Vector3[n];
   Vector3* force = new Vector3[n];
+  int verlet [n][n];
+  int* verlet_index = new int[n];
   int* type = new int[n];
   // Initialize positions.
   for (int i = 0; i < n; i++) {
@@ -62,23 +68,35 @@ int main(int argc, char* argv[]) {
     // Get the force of the environment.
     for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
 
-    
-    for (int i = 0; i < n; i++) {
-      for (int j = i+1; j < n; j++) {
-        // build verlet list here
+
+    if(s % VERLET_REBUILD_INT == 0) {
+      for (int i = 0; i < n; i++) {
+        int num_neighbors = 0;
+	      for (int j = i+1; j < n; j++) {
+          Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
+          double dist = d.length();
+	  
+          if(dist < MAX_INTERACTION_RADIUS) {
+            // No need to populate verlet[j]...lower triangular is how we roll.
+            verlet[i][num_neighbors] = j;
+            num_neighbors++;
+          }
+        }
+
+        verlet_index[i] = num_neighbors;
       }
     }
 
 
     // Particle-particle interactions.
     for (int i = 0; i < n; i++) {
-      for (int j = i+1; j < n; j++) {
-	Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
+      for (int j = 0; j < verlet_index[i]; j++) {
+	Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[verlet[i][j]]);
 	double dist = d.length();
 	double fMag = -interactEnergy.computeGrad(dist);
 	Vector3 f = fMag/dist*d;
 	force[i] += f;
-	force[j] -= f;
+	force[verlet[i][j]] -= f;
       }
     }
 

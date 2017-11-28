@@ -35,7 +35,8 @@ int main(int argc, char* argv[]) {
 
   double beta = 1.0/kT;
   long seed = (unsigned int)time((time_t *)NULL) + seed0*seed0*seed0;
-  Random rando(seed);
+  // REMOVING SEED FOR TESTING: Random rando(seed);
+  Random rando;
 
   // Number of particles.
   const int n = initCoord.length();

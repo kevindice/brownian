@@ -27,5 +27,6 @@ elif [ ! -d $1 ]; then
 fi
 
 
+fmt="DATA\t$2\t'$(date)'\t$(whoami)\t$(hostname)\tuser:\t%U\tsystem:\t%S\telapsed:\t%e"
 
-time $1/do-example.sh "$parent_path/../bin/$2"
+/usr/bin/time -f "$fmt" $1/do-example.sh "$parent_path/../bin/$2"

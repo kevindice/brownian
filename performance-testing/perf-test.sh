@@ -28,4 +28,4 @@ fi
 
 
 
-$1/do-example.sh "$parent_path/../bin/$2"
+time $1/do-example.sh "$parent_path/../bin/$2"

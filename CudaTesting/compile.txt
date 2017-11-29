@@ -1,0 +1,5 @@
+For Serial:
+g++ add.cpp -o add
+
+For cuda:
+nvcc -I  /opt/cuda/sdk/common/inc -arch sm_30 add.cu -o add

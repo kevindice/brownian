@@ -11,7 +11,8 @@
 #include "TrajectoryWriter.H"
 #include <algorithm>
 
-#define MAX_INTERACTION_RADIUS 12.1
+#define MAX_INTERACTION_RADIUS 12.0
+#define RADIUS_BUFFER_PER_STEP 60
 #define VERLET_REBUILD_INT 1
 
 int main(int argc, char* argv[]) {
@@ -50,6 +51,7 @@ int main(int argc, char* argv[]) {
   int verlet [n][n];
   int verlet_index [n];
   int* type = new int[n];
+
   // Initialize positions.
   for (int i = 0; i < n; i++) {
     pos[i] = initCoord.get(i);
@@ -77,7 +79,7 @@ int main(int argc, char* argv[]) {
           Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
           double dist = d.length();
 
-          if(dist <= MAX_INTERACTION_RADIUS) {
+          if(dist <= MAX_INTERACTION_RADIUS + RADIUS_BUFFER_PER_STEP * VERLET_REBUILD_INT) {
             verlet[i][verlet_index[i]] = j;
             verlet_index[i]++;
           }
@@ -113,7 +115,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (s % outputPeriod == 0) {
-      fprintf(stdout, "STEP %ld TIME %.15g\n", s, dt*s);
+      fprintf(stdout, "STEP %ld TIME %.15g\n", s, dt*s );
       writer.append(pos, type, dt*s, n);
     }
   }

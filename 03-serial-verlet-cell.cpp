@@ -57,16 +57,54 @@ int main(int argc, char* argv[]) {
     TrajectoryWriter writer(outputPrefix, outputFormat, sysEnergy.getBox(), n, dt, outputPeriod, typeName);
     writer.newFile(pos, type, 0.0, n);
 
+    // Figure out min/maxes of simulation space
+    double minX = 0;
+    double minY = 0;
+    double minZ = 0;
+    double maxX = 0;
+    double maxY = 0;
+    double maxZ = 0;
+    int sizeX, sizeY, sizeZ;
+
+    for (int i = 0; i < n; i++) {
+        if (pos[i].x < minX) {
+            minX = pos[i].x;
+        } else if (pos[i].x > maxX) {
+            maxX = pos[i].x;
+        }
+        if (pos[i].y < minY) {
+            minY = pos[i].y;
+        } else if (pos[i].y > maxY) {
+            maxY = pos[i].y;
+        }
+        if (pos[i].z < minZ) {
+            minZ = pos[i].z;
+        } else if (pos[i].z > maxZ) {
+            maxZ = pos[i].z;
+        }
+    }
+
+    minX = floor(minX);
+    minY = floor(minY);
+    minZ = floor(minZ);
+    maxX = ceil(maxX);
+    maxY = ceil(maxY);
+    maxZ = ceil(maxZ);
+
+    //printf("Simulation Space MIN - x: %f, y: %f, z: %f\n", minX, minY, minZ);
+    //printf("Simulation Space MAX - x: %f, y: %f, z: %f\n", maxX, maxY, maxZ);
+
+    // Divide up the space and create the cell lists
+    sizeX = abs(minX) + abs(maxX);
+    sizeY = abs(minY) + abs(maxY);
+    sizeZ = abs(minZ) + abs(maxZ);
+
+    //printf("Simulation Size - x: %d, y: %d, z: %d\n", sizeX, sizeY, sizeZ);
+
     long int s;
     for (s = 1; s <= steps; s++) {
         // Get the force of the environment.
         for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
-
-        // Figure out how many cells to create
-
-
-        // Create cells
-
 
         // Assign particles to cells
         for (int i = 0; i < n; i++) {

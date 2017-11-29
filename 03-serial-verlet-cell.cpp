@@ -64,6 +64,7 @@ int main(int argc, char* argv[]) {
     double maxX = 0;
     double maxY = 0;
     double maxZ = 0;
+    int sizeX, sizeY, sizeZ;
 
     for (int i = 0; i < n; i++) {
         if (pos[i].x < minX) {
@@ -94,6 +95,11 @@ int main(int argc, char* argv[]) {
     //printf("Simulation Space MAX - x: %f, y: %f, z: %f\n", maxX, maxY, maxZ);
 
     // Divide up the space and create the cell lists
+    sizeX = abs(minX) + abs(maxX);
+    sizeY = abs(minY) + abs(maxY);
+    sizeZ = abs(minZ) + abs(maxZ);
+
+    //printf("Simulation Size - x: %d, y: %d, z: %d\n", sizeX, sizeY, sizeZ);
 
     long int s;
     for (s = 1; s <= steps; s++) {

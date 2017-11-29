@@ -16,4 +16,4 @@ cell: 03-serial-verlet-cell.cpp
 	g++ $(CFLAGS) 03-serial-verlet-cell.cpp -o bin/03-serial-verlet-cell $(MATHFLAGS)
 
 clean:
-	rm -f $(ROOT) $(ROOT)
+	rm -f bin/*

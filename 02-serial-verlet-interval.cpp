@@ -11,9 +11,9 @@
 #include "TrajectoryWriter.H"
 #include <algorithm>
 
-#define MAX_INTERACTION_RADIUS 12.0
-#define RADIUS_BUFFER_PER_STEP 60
-#define VERLET_REBUILD_INT 1
+#define MAX_INTERACTION_RADIUS 12.1
+#define RADIUS_BUFFER_PER_STEP 1.5
+#define VERLET_REBUILD_INT 10
 
 int main(int argc, char* argv[]) {
   if (argc != 12) {
@@ -71,15 +71,14 @@ int main(int argc, char* argv[]) {
     // Get the force of the environment.
     for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
 
-    if(s % VERLET_REBUILD_INT == 0) {
-      memset(verlet, 0, sizeof(verlet));
-      memset(verlet_index, 0, sizeof(verlet_index));
+    if((s - 1) % VERLET_REBUILD_INT == 0) {
       for (int i = 0; i < n; i++) {
-              for (int j = i+1; j < n; j++) {
+        verlet_index[i] = 0;
+        for (int j = i+1; j < n; j++) {
           Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
           double dist = d.length();
 
-          if(dist <= MAX_INTERACTION_RADIUS + RADIUS_BUFFER_PER_STEP * VERLET_REBUILD_INT) {
+          if(dist <= MAX_INTERACTION_RADIUS + RADIUS_BUFFER_PER_STEP * (VERLET_REBUILD_INT - 1)) {
             verlet[i][verlet_index[i]] = j;
             verlet_index[i]++;
           }
@@ -119,6 +118,8 @@ int main(int argc, char* argv[]) {
       writer.append(pos, type, dt*s, n);
     }
   }
+
+
 
   delete[] pos;
   delete[] force;

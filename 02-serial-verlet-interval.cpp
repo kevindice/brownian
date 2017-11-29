@@ -1,0 +1,134 @@
+///////////////////////////////////////////////////////////////////////
+// Author: Jeff Comer <jeffcomer at gmail>
+// Modified by: Kevin Dice <kmdice at ksu dot edu>
+//
+#include <ctime>
+#include "useful.H"
+#include "PiecewiseCubic.H"
+#include "Scatter.H"
+#include "RandomGsl.H"
+#include "BaseGrid.H"
+#include "TrajectoryWriter.H"
+#include <algorithm>
+
+#define MAX_INTERACTION_RADIUS 12.0
+#define RADIUS_BUFFER 2
+#define VERLET_REBUILD_INT 10
+
+int main(int argc, char* argv[]) {
+  if (argc != 12) {
+    printf("Usage: %s energyDxFile diffuseDxFile interactEnergyFile initFile dt kT steps seed0 outputFormat outputPeriod outputPrefix\n", argv[0]);
+    printf("outputFormat can be 'traj' or 'pdb'\n");
+    exit(0);
+  }
+  BaseGrid sysEnergy(argv[1]);
+  BaseGrid sysDiffuse(argv[2]);
+  PiecewiseCubic interactEnergy(argv[3], false);
+  Scatter initCoord(argv[4]);
+  double dt = strtod(argv[5],NULL);
+  double kT = strtod(argv[6],NULL);
+  long int steps = atol(argv[7]);
+  //long int seed0 = atol(argv[8]);
+  const char* outputFormat = argv[9];
+  int outputPeriod = atoi(argv[10]);
+  const char* outputPrefix = argv[argc-1];
+
+  printf("System 3D energy map: `%s' %d nodes\n", argv[1], sysEnergy.length());
+  printf("System 3D diffusivity map: `%s' %d nodes\n", argv[2], sysDiffuse.length());
+  printf("Interparticle radial interaction energy: `%s' %d nodes\n", argv[3], interactEnergy.length());
+  printf("Initial coordinates: `%s'\n", argv[4]);
+  printf("dt %g kT %g steps %ld outputPeriod %d\n", dt, kT, steps, outputPeriod);
+
+  double beta = 1.0/kT;
+  // long seed = (unsigned int)time((time_t *)NULL) + seed0*seed0*seed0;
+  // CONSTANT SEED FOR TESTING: Random rando(seed);
+  Random rando(0);
+
+  // Number of particles.
+  const int n = initCoord.length();
+  Vector3* pos = new Vector3[n];
+  Vector3* force = new Vector3[n];
+  int verlet [n][n];
+  int verlet_index [n];
+  int* type = new int[n];
+
+  double max_displacement = 0.0;
+
+  // Initialize positions.
+  for (int i = 0; i < n; i++) {
+    pos[i] = initCoord.get(i);
+    type[i] = 0;
+  }
+
+  // The names of the particle types (we just have one type right now).
+  String* typeName = new String[1];
+  typeName[0] = "N";
+
+  // Prepare to write the trajectory.
+  TrajectoryWriter writer(outputPrefix, outputFormat, sysEnergy.getBox(), n, dt, outputPeriod, typeName);
+  writer.newFile(pos, type, 0.0, n);
+
+  long int s;
+  for (s = 1; s <= steps; s++) {
+    // Get the force of the environment.
+    for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
+
+    if(s % VERLET_REBUILD_INT == 0) {
+      memset(verlet, 0, sizeof(verlet));
+      memset(verlet_index, 0, sizeof(verlet_index));
+      for (int i = 0; i < n; i++) {
+              for (int j = i+1; j < n; j++) {
+          Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
+          double dist = d.length();
+
+          if(dist <= MAX_INTERACTION_RADIUS + RADIUS_BUFFER) {
+            verlet[i][verlet_index[i]] = j;
+            verlet_index[i]++;
+          }
+        }
+      }
+    }
+
+    // Particle-particle interactions.
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < verlet_index[i]; j++) {
+        Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[verlet[i][j]]);
+        double dist = d.length();
+        double fMag = -interactEnergy.computeGrad(dist);
+        Vector3 f = fMag/dist*d;
+        force[i] += f;
+        force[verlet[i][j]] -= f;
+      }
+    }
+
+    // Update position.
+    for (int i = 0; i < n; i++) {
+      double diffuse = sysDiffuse.interpolatePotential(pos[i]);
+      Vector3 diffGrad = -sysDiffuse.interpolateForce(pos[i]);
+
+      // Get the random kick.
+      Vector3 dr = rando.gaussian_vector();
+
+      // Perform the Brownian Dynamics step.
+      Vector3 r = pos[i] + beta*force[i]*diffuse*dt + diffGrad*dt + sqrt(2*diffuse*dt)*dr;
+
+      max_displacement = std::max(max_displacement, r.length());
+
+      // Wrap boundaries.
+      pos[i] = sysEnergy.wrap(r);
+    }
+
+    if (s % outputPeriod == 0) {
+      fprintf(stdout, "STEP %ld TIME %.15g MXDP %lf \n", s, dt*s, max_displacement);
+      writer.append(pos, type, dt*s, n);
+    }
+  }
+
+  delete[] pos;
+  delete[] force;
+  delete[] type;
+  delete[] typeName;
+
+  return 0;
+}
+

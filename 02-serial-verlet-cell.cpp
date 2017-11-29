@@ -57,16 +57,16 @@ int main(int argc, char* argv[]) {
     TrajectoryWriter writer(outputPrefix, outputFormat, sysEnergy.getBox(), n, dt, outputPeriod, typeName);
     writer.newFile(pos, type, 0.0, n);
 
+    // Figure out how many cells to create
+    // sysEnergy.getBox() represents the "system box" which is a matrix defining the basis for the entire system.
+    // Matrix3(nx*basis.ex(), ny*basis.ey(), nz*basis.ez());
+
+    // Create the cells
+
     long int s;
     for (s = 1; s <= steps; s++) {
         // Get the force of the environment.
         for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
-
-        // Figure out how many cells to create
-
-
-        // Create cells
-
 
         // Assign particles to cells
         for (int i = 0; i < n; i++) {

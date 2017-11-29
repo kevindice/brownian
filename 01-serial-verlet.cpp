@@ -1,6 +1,7 @@
 ///////////////////////////////////////////////////////////////////////
 // Author: Jeff Comer <jeffcomer at gmail>
-
+// Modified by: Kevin Dice <kmdice at ksu dot edu>
+//
 #include <ctime>
 #include "useful.H"
 #include "PiecewiseCubic.H"
@@ -8,6 +9,10 @@
 #include "RandomGsl.H"
 #include "BaseGrid.H"
 #include "TrajectoryWriter.H"
+#include <algorithm>
+
+#define MAX_INTERACTION_RADIUS 12.1
+#define VERLET_REBUILD_INT 1
 
 int main(int argc, char* argv[]) {
   if (argc != 12) {
@@ -15,8 +20,8 @@ int main(int argc, char* argv[]) {
     printf("outputFormat can be 'traj' or 'pdb'\n");
     exit(0);
   }
-  BaseGrid sysEnergy(argv[1]);  
-  BaseGrid sysDiffuse(argv[2]);  
+  BaseGrid sysEnergy(argv[1]);
+  BaseGrid sysDiffuse(argv[2]);
   PiecewiseCubic interactEnergy(argv[3], false);
   Scatter initCoord(argv[4]);
   double dt = strtod(argv[5],NULL);
@@ -34,14 +39,16 @@ int main(int argc, char* argv[]) {
   printf("dt %g kT %g steps %ld outputPeriod %d\n", dt, kT, steps, outputPeriod);
 
   double beta = 1.0/kT;
-  //long seed = (unsigned int)time((time_t *)NULL) + seed0*seed0*seed0;
-  // REMOVING SEED FOR TESTING: Random rando(seed);
+  // long seed = (unsigned int)time((time_t *)NULL) + seed0*seed0*seed0;
+  // CONSTANT SEED FOR TESTING: Random rando(seed);
   Random rando(0);
 
   // Number of particles.
   const int n = initCoord.length();
   Vector3* pos = new Vector3[n];
   Vector3* force = new Vector3[n];
+  int verlet [n][n];
+  int verlet_index [n];
   int* type = new int[n];
   // Initialize positions.
   for (int i = 0; i < n; i++) {
@@ -62,15 +69,31 @@ int main(int argc, char* argv[]) {
     // Get the force of the environment.
     for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
 
+    if(s % VERLET_REBUILD_INT == 0) {
+      memset(verlet, 0, sizeof(verlet));
+      memset(verlet_index, 0, sizeof(verlet_index));
+      for (int i = 0; i < n; i++) {
+              for (int j = i+1; j < n; j++) {
+          Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
+          double dist = d.length();
+
+          if(dist <= MAX_INTERACTION_RADIUS) {
+            verlet[i][verlet_index[i]] = j;
+            verlet_index[i]++;
+          }
+        }
+      }
+    }
+
     // Particle-particle interactions.
     for (int i = 0; i < n; i++) {
-      for (int j = i+1; j < n; j++) {
-	Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
-	double dist = d.length();
-	double fMag = -interactEnergy.computeGrad(dist);
-	Vector3 f = fMag/dist*d;
-	force[i] += f;
-	force[j] -= f;
+      for (int j = 0; j < verlet_index[i]; j++) {
+        Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[verlet[i][j]]);
+        double dist = d.length();
+        double fMag = -interactEnergy.computeGrad(dist);
+        Vector3 f = fMag/dist*d;
+        force[i] += f;
+        force[verlet[i][j]] -= f;
       }
     }
 
@@ -102,3 +125,4 @@ int main(int argc, char* argv[]) {
 
   return 0;
 }
+

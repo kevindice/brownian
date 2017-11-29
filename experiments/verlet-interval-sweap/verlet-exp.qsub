@@ -1,9 +1,12 @@
 #!/bin/bash
 
+#$ -l mem=4G
 #$ -t 1:200:1
 #$ -q \*@@moles
 #$ -cwd
 #$ -j y
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/homes/kmdice/gsl/lib/
 
 ./verlet-interval-experiment.sh tiny 02a-serial-verlet-interval-experiment $SGE_TASK_ID
 ./verlet-interval-experiment.sh small 02a-serial-verlet-interval-experiment $SGE_TASK_ID

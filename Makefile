@@ -4,7 +4,7 @@ MATHFLAGS = -lm -I$(HOME)/gsl/include/ -L$(HOME)/gsl/lib -lgsl -lgslcblas
 default: naive verlet verlet-interval cell
 
 naive: 00-serial-naive.cpp
-	g++ $(CFLAGS) 00-serial-naive.cpp -o bin/00-serial-naive $(MATHFLAGS)
+	g++ $(CFLAGS) 00-serial-naive.cpp -fopenmp -o bin/00-serial-naive $(MATHFLAGS)
 
 verlet: 01-serial-verlet.cpp
 	g++ $(CFLAGS) 01-serial-verlet.cpp -o bin/01-serial-verlet $(MATHFLAGS)

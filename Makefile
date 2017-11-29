@@ -10,7 +10,7 @@ verlet: 01-serial-verlet.cpp
 	g++ $(CFLAGS) 01-serial-verlet.cpp -o bin/01-serial-verlet $(MATHFLAGS)
 
 verlet-interval: 02-serial-verlet-interval.cpp
-	g++ $(CFLAGS) 02-serial-verlet-interval.cpp -o bin/02-serial-verlet $(MATHFLAGS)
+	g++ $(CFLAGS) 02-serial-verlet-interval.cpp -o bin/02-serial-verlet-interval $(MATHFLAGS)
 
 cell: 03-serial-verlet-cell.cpp
 	g++ $(CFLAGS) 03-serial-verlet-cell.cpp -o bin/03-serial-verlet-cell $(MATHFLAGS)

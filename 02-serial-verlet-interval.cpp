@@ -12,8 +12,8 @@
 #include <algorithm>
 
 #define MAX_INTERACTION_RADIUS 12.0
-#define RADIUS_BUFFER 2
-#define VERLET_REBUILD_INT 10
+#define RADIUS_BUFFER_PER_STEP 60
+#define VERLET_REBUILD_INT 1
 
 int main(int argc, char* argv[]) {
   if (argc != 12) {
@@ -52,8 +52,6 @@ int main(int argc, char* argv[]) {
   int verlet_index [n];
   int* type = new int[n];
 
-  double max_displacement = 0.0;
-
   // Initialize positions.
   for (int i = 0; i < n; i++) {
     pos[i] = initCoord.get(i);
@@ -81,7 +79,7 @@ int main(int argc, char* argv[]) {
           Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
           double dist = d.length();
 
-          if(dist <= MAX_INTERACTION_RADIUS + RADIUS_BUFFER) {
+          if(dist <= MAX_INTERACTION_RADIUS + RADIUS_BUFFER_PER_STEP * VERLET_REBUILD_INT) {
             verlet[i][verlet_index[i]] = j;
             verlet_index[i]++;
           }
@@ -112,14 +110,12 @@ int main(int argc, char* argv[]) {
       // Perform the Brownian Dynamics step.
       Vector3 r = pos[i] + beta*force[i]*diffuse*dt + diffGrad*dt + sqrt(2*diffuse*dt)*dr;
 
-      max_displacement = std::max(max_displacement, r.length());
-
       // Wrap boundaries.
       pos[i] = sysEnergy.wrap(r);
     }
 
     if (s % outputPeriod == 0) {
-      fprintf(stdout, "STEP %ld TIME %.15g MXDP %lf \n", s, dt*s, max_displacement);
+      fprintf(stdout, "STEP %ld TIME %.15g\n", s, dt*s );
       writer.append(pos, type, dt*s, n);
     }
   }

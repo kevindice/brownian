@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
   int outputPeriod = atoi(argv[10]);
   const char* outputPrefix = argv[argc-1];
   int cores = omp_get_num_procs();
-
+  int i, j;
 
   printf("System 3D energy map: `%s' %d nodes\n", argv[1], sysEnergy.length());
   printf("System 3D diffusivity map: `%s' %d nodes\n", argv[2], sysDiffuse.length());
@@ -64,13 +64,18 @@ int main(int argc, char* argv[]) {
   long int s;
   int chunks = n / cores;
 
+#pragma omp parallel shared(force, sysEnergy, pos, interactEnergy, sysDiffuse, rando) private(i)
+{
+
   for (s = 1; s <= steps; s++) {
     // Get the force of the environment.
-#pragma omp parallel shared(force, sysEnergy, pos) private(i)
+#pragma omp parallel for schedule(static, chunks)
     for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
 
+#pragma omp barrier
+
     // Particle-particle interactions.
-#pragma omp parallel shared(force, sysEnergy, interactEnergy, pos) private(i, j) schedule(static, chunks)
+#pragma omp parallel for schedule(static, chunks)
     for (int i = 0; i < n; i++) {
       for (int j = i+1; j < n; j++) {
 		Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
@@ -81,9 +86,11 @@ int main(int argc, char* argv[]) {
 		force[j] -= f;
       }
     }
-	
+
+#pragma omp barrier
+
     // Update position.
-#pragma omp parallel shared(sysDiffuse, pos, rando, force) private(i)
+#pragma omp parallel for schedule(static, chunks)
     for (int i = 0; i < n; i++) {
       double diffuse = sysDiffuse.interpolatePotential(pos[i]);
       Vector3 diffGrad = -sysDiffuse.interpolateForce(pos[i]);
@@ -103,6 +110,7 @@ int main(int argc, char* argv[]) {
       writer.append(pos, type, dt*s, n);
     }
   }
+}
 
   delete[] pos;
   delete[] force;

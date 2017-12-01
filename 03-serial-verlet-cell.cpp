@@ -120,7 +120,20 @@ int main(int argc, char* argv[]) {
         // Get the force of the environment.
         for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
 
-        // Assign particles to cells
+        // // Assign particles to cells
+        // for (int i = 0; i < n; i++) {
+        //     for (int j = 0; j < NUMLISTS; j++) {
+        //         if ((pos[i].x < something) && (pos[i].x > something)) {
+        //             // put it in the linked list
+        //         }
+        //         if ((pos[i].y < something) && (pos[i].y > something)) {
+        //             // put it in the linked list
+        //         }
+        //         if ((pos[i].z < something) && (pos[i].z > something)) {
+        //             // put it in the linked list
+        //         }
+        //     }
+        // }
 
         // Verlet lists
 

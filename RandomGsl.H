@@ -16,6 +16,7 @@
 
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
+#include <algorithm>
 
 class Random {
 
@@ -61,7 +62,12 @@ public:
 
   // return a vector of gaussian random numbers
   Vector3 gaussian_vector() {
-    return Vector3( gaussian(), gaussian(), gaussian() );
+    double a, b, c;
+    a = gaussian(); b = gaussian(); c = gaussian();
+    a = std::max(-3.0, std::min(3.0, a));
+    b = std::max(-3.0, std::min(3.0, b));
+    c = std::max(-3.0, std::min(3.0, c));
+    return Vector3( a, b, c );
   }
 
   // return a random long

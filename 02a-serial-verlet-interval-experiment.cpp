@@ -11,8 +11,8 @@
 #include "TrajectoryWriter.H"
 #include <algorithm>
 
-#define MAX_INTERACTION_RADIUS 25
-#define RADIUS_BUFFER_PER_STEP 2
+#define MAX_INTERACTION_RADIUS 25.0
+#define RADIUS_BUFFER_PER_STEP 5.0
 
 int main(int argc, char* argv[]) {
   if (argc != 13) {

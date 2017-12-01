@@ -9,6 +9,10 @@
 #include "BaseGrid.H"
 #include "TrajectoryWriter.H"
 
+#define MAX_INTERACTION_RADIUS 12
+#define RADIUS_BUFFER_PER_STEP 2
+#define VERLET_REBUILD_INT 2
+
 int main(int argc, char* argv[]) {
     if (argc != 12) {
         printf("Usage: %s energyDxFile diffuseDxFile interactEnergyFile initFile dt kT steps seed0 outputFormat outputPeriod outputPrefix\n", argv[0]);
@@ -101,15 +105,21 @@ int main(int argc, char* argv[]) {
 
     //printf("Simulation Size - x: %d, y: %d, z: %d\n", sizeX, sizeY, sizeZ);
 
+    double cellSize = MAX_INTERACTION_RADIUS + RADIUS_BUFFER_PER_STEP * (VERLET_REBUILD_INT - 1);
+
+    int numCellsX = ceil(sizeX / cellSize);
+    int numCellsY = ceil(sizeY / cellSize);
+    int numCellsZ = ceil(sizeZ / cellSize);
+
+    // each cell will be cellSize big, except for the last cell
+
+
     long int s;
     for (s = 1; s <= steps; s++) {
         // Get the force of the environment.
         for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
 
         // Assign particles to cells
-        for (int i = 0; i < n; i++) {
-            // use pos[i] for position
-        }
 
         // Verlet lists
 

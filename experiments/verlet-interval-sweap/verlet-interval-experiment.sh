@@ -2,6 +2,7 @@
 
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cd "$parent_path"
+pwd
 
 usage() {
 cat <<EOF
@@ -27,6 +28,6 @@ elif [ ! -d $1 ]; then
 fi
 
 
-fmt="DATA\t$2\t'$(date)'\t$(whoami)\t$(hostname)\tuser:\t%U\tsystem:\t%S\telapsed:\t%e"
+fmt="DATA\t$(printf "%03d" $3)\t$2\t'$(date)'\t$(whoami)\t$(hostname)\tuser:\t%U\tsystem:\t%S\telapsed:\t%e"
 
 /usr/bin/time -f "$fmt" $1/do-example.sh "$parent_path/../../bin/$2" $3

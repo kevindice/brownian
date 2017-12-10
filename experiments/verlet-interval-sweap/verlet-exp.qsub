@@ -1,13 +1,27 @@
 #!/bin/bash
 
-#$ -l mem=2G
-#$ -t 1:200:1
+#$ -l mem=4G
+#$ -l h_rt=0:55:00
+#$ -t 1:60:1
 #$ -q \*@@moles
 #$ -cwd
 #$ -j y
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/homes/kmdice/gsl/lib/
 
-./verlet-interval-experiment.sh tiny 02a-serial-verlet-interval-experiment $SGE_TASK_ID
-./verlet-interval-experiment.sh small 02a-serial-verlet-interval-experiment $SGE_TASK_ID
-# ./verlet-interval-experiment.sh big 02a-serial-verlet-interval-experiment $SGE_TASK_ID
+cp -r tiny $TMPDIR/tiny
+cp -r small $TMPDIR/small
+cp -r big $TMPDIR/big
+
+mkdir -p results/tiny
+mkdir -p results/small
+mkdir -p results/big
+
+./verlet-interval-experiment.sh $TMPDIR/tiny 02a-serial-verlet-interval-experiment $SGE_TASK_ID
+cp $TMPDIR/tiny/tiny_sim_graph-tol* results/tiny/
+
+./verlet-interval-experiment.sh $TMPDIR/small 02a-serial-verlet-interval-experiment $SGE_TASK_ID
+cp $TMPDIR/small/small_sim_graph-tol* results/small/
+
+./verlet-interval-experiment.sh $TMPDIR/big 02a-serial-verlet-interval-experiment $SGE_TASK_ID
+cp $TMPDIR/big/big_sim_graph-tol*

@@ -24,4 +24,4 @@ cp $TMPDIR/tiny/tiny_sim_graph-tol* results/tiny/
 cp $TMPDIR/small/small_sim_graph-tol* results/small/
 
 ./verlet-interval-experiment.sh $TMPDIR/big 02a-serial-verlet-interval-experiment $SGE_TASK_ID
-cp $TMPDIR/big/big_sim_graph-tol*
+cp $TMPDIR/big/big_sim_graph-tol* results/big/

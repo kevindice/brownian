@@ -25,6 +25,8 @@ wget "$URL/$TAR" && openssl dgst -sha512 \
   -verify <(wget -qO- "$URL/cert.pem" | openssl x509 -noout -pubkey) \
   -signature <(wget -qO- "$URL/$TAR.sig") "$TAR"
 
+tar -zxjf halmd-*.tar.bz2
+
 mkdir -p /tmp/halmd_prerequisites$USER && cd /tmp/halmd-prerequisites$USER
 nice make -f ~/halmd/examples/packages.mk -j6 install
 make -f ~/halmd/examples/packages.mk env >> ~/.bashrc

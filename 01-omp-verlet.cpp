@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <omp.h>
 
-#define MAX_INTERACTION_RADIUS 12.1
+#define MAX_INTERACTION_RADIUS 12.5
 #define VERLET_REBUILD_INT 1
 
 int main(int argc, char* argv[]) {

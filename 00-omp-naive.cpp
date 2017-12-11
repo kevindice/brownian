@@ -8,6 +8,8 @@
 #include "RandomGsl.H"
 #include "BaseGrid.H"
 #include "TrajectoryWriter.H"
+#include <omp.h>
+
 
 int main(int argc, char* argv[]) {
   if (argc != 12) {
@@ -26,6 +28,8 @@ int main(int argc, char* argv[]) {
   const char* outputFormat = argv[9];
   int outputPeriod = atoi(argv[10]);
   const char* outputPrefix = argv[argc-1];
+  int cores = omp_get_num_procs();
+  int i, j;
 
   printf("System 3D energy map: `%s' %d nodes\n", argv[1], sysEnergy.length());
   printf("System 3D diffusivity map: `%s' %d nodes\n", argv[2], sysDiffuse.length());
@@ -48,7 +52,7 @@ int main(int argc, char* argv[]) {
     pos[i] = initCoord.get(i);
     type[i] = 0;
   }
-
+  
   // The names of the particle types (we just have one type right now).
   String* typeName = new String[1];
   typeName[0] = "N";
@@ -58,23 +62,35 @@ int main(int argc, char* argv[]) {
   writer.newFile(pos, type, 0.0, n);
 
   long int s;
+  int chunks = n / cores;
+
+#pragma omp parallel shared(force, sysEnergy, pos, interactEnergy, sysDiffuse, rando) private(i)
+{
+
   for (s = 1; s <= steps; s++) {
     // Get the force of the environment.
+#pragma omp parallel for schedule(static, chunks)
     for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
 
+#pragma omp barrier
+
     // Particle-particle interactions.
+#pragma omp parallel for schedule(static, chunks)
     for (int i = 0; i < n; i++) {
       for (int j = i+1; j < n; j++) {
-	Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
-	double dist = d.length();
-	double fMag = -interactEnergy.computeGrad(dist);
-	Vector3 f = fMag/dist*d;
-	force[i] += f;
-	force[j] -= f;
+		Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
+		double dist = d.length();
+		double fMag = -interactEnergy.computeGrad(dist);
+		Vector3 f = fMag/dist*d;
+		force[i] += f;
+		force[j] -= f;
       }
     }
 
+#pragma omp barrier
+
     // Update position.
+#pragma omp parallel for schedule(static, chunks)
     for (int i = 0; i < n; i++) {
       double diffuse = sysDiffuse.interpolatePotential(pos[i]);
       Vector3 diffGrad = -sysDiffuse.interpolateForce(pos[i]);
@@ -94,6 +110,7 @@ int main(int argc, char* argv[]) {
       writer.append(pos, type, dt*s, n);
     }
   }
+}
 
   delete[] pos;
   delete[] force;

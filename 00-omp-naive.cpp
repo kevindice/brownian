@@ -36,6 +36,7 @@ int main(int argc, char* argv[]) {
   printf("Interparticle radial interaction energy: `%s' %d nodes\n", argv[3], interactEnergy.length());
   printf("Initial coordinates: `%s'\n", argv[4]);
   printf("dt %g kT %g steps %ld outputPeriod %d\n", dt, kT, steps, outputPeriod);
+  printf("Number of particles: %d\n", initCoord.length());
 
   double beta = 1.0/kT;
   //long seed = (unsigned int)time((time_t *)NULL) + seed0*seed0*seed0;
@@ -62,35 +63,29 @@ int main(int argc, char* argv[]) {
   writer.newFile(pos, type, 0.0, n);
 
   long int s;
-  int chunks = n / cores;
-
-#pragma omp parallel shared(force, sysEnergy, pos, interactEnergy, sysDiffuse, rando) private(i)
-{
 
   for (s = 1; s <= steps; s++) {
     // Get the force of the environment.
-#pragma omp parallel for schedule(static, chunks)
+    #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
 
-#pragma omp barrier
 
     // Particle-particle interactions.
-#pragma omp parallel for schedule(static, chunks)
+    #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < n; i++) {
       for (int j = i+1; j < n; j++) {
-		Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
-		double dist = d.length();
-		double fMag = -interactEnergy.computeGrad(dist);
-		Vector3 f = fMag/dist*d;
-		force[i] += f;
-		force[j] -= f;
+        Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
+        double dist = d.length();
+        double fMag = -interactEnergy.computeGrad(dist);
+        Vector3 f = fMag/dist*d;
+        force[i] += f;
+        force[j] -= f;
       }
     }
 
-#pragma omp barrier
 
     // Update position.
-#pragma omp parallel for schedule(static, chunks)
+    #pragma omp parallel for schedule(static, chunks)
     for (int i = 0; i < n; i++) {
       double diffuse = sysDiffuse.interpolatePotential(pos[i]);
       Vector3 diffGrad = -sysDiffuse.interpolateForce(pos[i]);
@@ -110,7 +105,6 @@ int main(int argc, char* argv[]) {
       writer.append(pos, type, dt*s, n);
     }
   }
-}
 
   delete[] pos;
   delete[] force;

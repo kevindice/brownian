@@ -13,7 +13,7 @@
 
 #define MAX_INTERACTION_RADIUS 12.1
 #define RADIUS_BUFFER_PER_STEP 1.5
-#define VERLET_REBUILD_INT 10
+#define VERLET_REBUILD_INT 3
 
 int main(int argc, char* argv[]) {
   if (argc != 12) {

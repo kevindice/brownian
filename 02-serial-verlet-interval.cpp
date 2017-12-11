@@ -11,8 +11,8 @@
 #include "TrajectoryWriter.H"
 #include <algorithm>
 
-#define MAX_INTERACTION_RADIUS 12.1
-#define RADIUS_BUFFER_PER_STEP 1.5
+#define MAX_INTERACTION_RADIUS 20.0
+#define RADIUS_BUFFER_PER_STEP 4
 #define VERLET_REBUILD_INT 3
 
 int main(int argc, char* argv[]) {

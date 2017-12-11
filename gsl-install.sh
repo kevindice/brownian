@@ -2,7 +2,7 @@
 
 cd ~
 wget https://mirrors.ocf.berkeley.edu/gnu/gsl/gsl-2.4.tar.gz
-tar -zxvf gsl-*.*.tar.gz
+tar -xvzf gsl-*.*.tar.gz
 mkdir gsl
 cd gsl-2.4
 ./configure --prefix=$HOME/gsl
@@ -25,7 +25,7 @@ wget "$URL/$TAR" && openssl dgst -sha512 \
   -verify <(wget -qO- "$URL/cert.pem" | openssl x509 -noout -pubkey) \
   -signature <(wget -qO- "$URL/$TAR.sig") "$TAR"
 
-tar -zxjf halmd-*.tar.bz2
+tar -xvjf halmd-*.tar.bz2
 
 mkdir -p /tmp/halmd_prerequisites$USER && cd /tmp/halmd-prerequisites$USER
 nice make -f ~/halmd/examples/packages.mk -j6 install

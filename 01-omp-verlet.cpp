@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    #pragma single
+    #pragma omp single
     for (int i = 0; i < n; i++) randoms[i] = rando.gaussian_vector();
 
     // Update position.

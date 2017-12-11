@@ -87,8 +87,11 @@ int main(int argc, char* argv[]) {
           double dist = d.length();
 
           if(dist <= MAX_INTERACTION_RADIUS) {
+            #pragma omp critical
+            {
             verlet[i][verlet_index[i]] = j;
             verlet_index[i]++;
+            }
           }
         }
       }
@@ -111,7 +114,9 @@ int main(int argc, char* argv[]) {
     }
 
     #pragma omp single
+    {
     for (int i = 0; i < n; i++) randoms[i] = rando.gaussian_vector();
+    }
 
     // Update position.
     #pragma omp parallel for

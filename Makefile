@@ -1,11 +1,14 @@
 CFLAGS = -O2 -Wall -Wno-strict-overflow -Wno-unused-result -march=native -mfpmath=sse
 MATHFLAGS = -lm -I$(HOME)/gsl/include/ -L$(HOME)/gsl/lib -lgsl -lgslcblas
 
-default: naive verlet verlet-interval cell
+default: naive naive-omp verlet verlet-interval cell
 experiment: verlet-interval-experiment
 
 naive: 00-serial-naive.cpp
-	g++ $(CFLAGS) 00-serial-naive.cpp -fopenmp -o bin/00-serial-naive $(MATHFLAGS)
+	g++ $(CFLAGS) 00-serial-naive.cpp -o bin/00-serial-naive $(MATHFLAGS)
+
+naive-omp: 00-omp-naive.cpp
+	g++ $(CFLAGS) 00-omp-naive.cpp -fopenmp -o bin/00-omp-naive $(MATHFLAGS)
 
 verlet: 01-serial-verlet.cpp
 	g++ $(CFLAGS) 01-serial-verlet.cpp -o bin/01-serial-verlet $(MATHFLAGS)

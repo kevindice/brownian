@@ -11,4 +11,4 @@ elif [ ! -x $1 ]; then
     exit
 fi
    
-$1 energy_graphene_toluene.dx diffuse_graphene_toluene.dx energy_toluene-toluene.dat init_coords.dat 4e-5 0.59616124 10 0 pdb 1 sim_big_graph-tol-$(basename "$1")-$(date +%s)
+$1 energy_graphene_toluene.dx diffuse_graphene_toluene.dx energy_toluene-toluene.dat init_coords.dat 4e-5 0.59616124 10 0 pdb 1 sim_big_graph-tol-$(basename "$1")-$SGE_JOB_ID-$SGE_TASK_ID-$(date +%s)

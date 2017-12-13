@@ -1,4 +1,6 @@
-# Get GSL
+#!/bin/bash
+
+#Get GSL
 
 cd /tmp
 mkdir setup

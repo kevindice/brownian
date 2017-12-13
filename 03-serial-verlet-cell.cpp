@@ -147,19 +147,19 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
 
         if(s % VERLET_REBUILD_INT == 0) {
-          memset(verlet, 0, sizeof(verlet));
-          memset(verlet_index, 0, sizeof(verlet_index));
-          for (int i = 0; i < n; i++) {
-                  for (int j = i+1; j < n; j++) {
-              Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
-              double dist = d.length();
+            memset(verlet, 0, sizeof(verlet));
+            memset(verlet_index, 0, sizeof(verlet_index));
+            for (int i = 0; i < n; i++) {
+                for (int j = i+1; j < n; j++) {
+                    Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
+                    double dist = d.length();
 
-              if(dist <= MAX_INTERACTION_RADIUS) {
-                verlet[i][verlet_index[i]] = j;
-                verlet_index[i]++;
-              }
+                    if(dist <= MAX_INTERACTION_RADIUS) {
+                        verlet[i][verlet_index[i]] = j;
+                        verlet_index[i]++;
+                    }
+                }
             }
-          }
         }
 
         // Particle-particle interactions.

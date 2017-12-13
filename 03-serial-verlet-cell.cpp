@@ -9,6 +9,7 @@
 #include "RandomGsl.H"
 #include "BaseGrid.H"
 #include "TrajectoryWriter.H"
+#include <algorithm>
 
 #define MAX_INTERACTION_RADIUS 12
 #define RADIUS_BUFFER_PER_STEP 2
@@ -47,6 +48,8 @@ int main(int argc, char* argv[]) {
     const int n = initCoord.length();
     Vector3* pos = new Vector3[n];
     Vector3* force = new Vector3[n];
+    int verlet [n][n];
+    int verlet_index [n];
     int* type = new int[n];
     // Initialize positions.
     for (int i = 0; i < n; i++) {
@@ -143,22 +146,21 @@ int main(int argc, char* argv[]) {
         // Get the force of the environment.
         for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
 
-        // // Assign particles to cells
-        // for (int i = 0; i < n; i++) {
-        //     for (int j = 0; j < NUMLISTS; j++) {
-        //         if ((pos[i].x < something) && (pos[i].x > something)) {
-        //             // put it in the linked list
-        //         }
-        //         if ((pos[i].y < something) && (pos[i].y > something)) {
-        //             // put it in the linked list
-        //         }
-        //         if ((pos[i].z < something) && (pos[i].z > something)) {
-        //             // put it in the linked list
-        //         }
-        //     }
-        // }
+        if(s % VERLET_REBUILD_INT == 0) {
+          memset(verlet, 0, sizeof(verlet));
+          memset(verlet_index, 0, sizeof(verlet_index));
+          for (int i = 0; i < n; i++) {
+                  for (int j = i+1; j < n; j++) {
+              Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
+              double dist = d.length();
 
-        // Verlet lists
+              if(dist <= MAX_INTERACTION_RADIUS) {
+                verlet[i][verlet_index[i]] = j;
+                verlet_index[i]++;
+              }
+            }
+          }
+        }
 
         // Particle-particle interactions.
         for (int i = 0; i < n; i++) {
@@ -168,7 +170,7 @@ int main(int argc, char* argv[]) {
                 double fMag = -interactEnergy.computeGrad(dist);
                 Vector3 f = fMag/dist*d;
                 force[i] += f;
-                force[j] -= f;
+                force[verlet[i][j]] -= f;
             }
         }
 

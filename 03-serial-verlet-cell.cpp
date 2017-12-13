@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
 
     // Set all heads to -1
     for (i = 0; i < (numCellsX * numCellsY * numCellsZ); i++) {
-        head[c] = -1;
+        head[i] = -1;
     }
 
     // Put atoms in linked list

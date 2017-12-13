@@ -1,5 +1,6 @@
 ///////////////////////////////////////////////////////////////////////
 // Author: Jeff Comer <jeffcomer at gmail>
+// Modified by: George Walker <walkerg at ksu dot edu>
 
 #include <ctime>
 #include "useful.H"
@@ -114,6 +115,28 @@ int main(int argc, char* argv[]) {
     // each cell will be cellSize big, except for the last cell
 
     printf("Cell Size: %f, NumCellsX: %d, NumCellsY: %d, NumCellsZ: %d\n", cellSize, numCellsX, numCellsY, numCellsZ);
+
+    // Build the Linked List:
+    int cellList[n]; // cellList[i] holds the atom index to which the ith atom points.
+    int head[n]; // head[c] holds the index of the first atom in the c-th cell, or head[c] = −1 if there is no atom in the cell.
+    int i, j;
+
+    // Set all heads to -1
+    for (i = 0; i < (numCellsX * numCellsY * numCellsZ); i++) {
+        head[c] = -1;
+    }
+
+    // Put atoms in linked list
+    for (i=0; i<n; i++) {
+        // Compute the scalar cell index
+        j = (pos[i].x/sizeX) * numCellsY * numCellsZ + (pos[i].y/sizeY) * numCellsZ + (pos[i].z/sizeZ);
+
+        // Link to any other atoms in that cell
+        cellList[i] = head[j];
+
+        // Put the last atom in the head of its cell
+        head[j] = i;
+    }
 
     long int s;
     for (s = 1; s <= steps; s++) {

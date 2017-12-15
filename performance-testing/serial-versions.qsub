@@ -1,0 +1,36 @@
+#!/bin/bash
+
+#$ -l mem=4G
+#$ -l h_rt=2:00:00
+#$ -t 1:30:1
+#$ -q \*@@moles
+#$ -cwd
+#$ -j y
+#$ -m abe
+#$ -M kevin.dice1@gmail.com
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/homes/kmdice/gsl/lib/
+
+binaries=(00-serial-naive 01-serial-verlet 02-serial-verlet-interval)
+index=`expr $SGE_TASK_ID / 10`
+echo $index
+r=$RANDOM
+
+mkdir -p $TMPDIR/$r
+
+cp -r tiny $TMPDIR/$r/tiny
+cp -r small $TMPDIR/$r/small
+cp -r big $TMPDIR/$r/big
+
+mkdir -p results/tiny/
+mkdir -p results/small/
+mkdir -p results/big/
+
+./perf-test.sh $TMPDIR/$r/tiny ${binaries[$index]}
+cp $TMPDIR/$r/tiny/tiny_sim* results/tiny/
+
+./perf-test.sh $TMPDIR/$r/small ${binaries[$index]}
+cp $TMPDIR/$r/small/small_sim* results/small/
+
+./perf-test.sh $TMPDIR/$r/big ${binaries[$index]}
+cp $TMPDIR/$r/big/big_sim* results/big/

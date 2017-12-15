@@ -1,2 +1,4 @@
 *.pdb
 perf-test-all-versions.qsub.o*
+serial-versions.qsub.*
+omp-versions.qsub.*

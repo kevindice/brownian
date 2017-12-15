@@ -26,6 +26,7 @@ elif [ ! -d $1 ]; then
 	exit
 fi
 
+pwd
 
 fmt="DATA\t$2\t'$(date)'\t$(whoami)\t$(hostname)\tuser:\t%U\tsystem:\t%S\telapsed:\t%e"
 

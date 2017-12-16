@@ -1,83 +1,59 @@
 // This file describes the logic of determining neigbor cells
-
-int surrounding[27]; // Array to store indexes of neighbor cells
-
-//   |            In Front            |  |            This Layer          |  |             Behind             |
-//   00  01  02  03  04  05  06  07  08  09  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26
-
-// X
-// (thisCellIndex + numCells + (d)) % numCells
-
-// Y
-// (thisCellIndex + numCells + (d * numCellsZ)) % numCells
-
-// Z
-// (thisCellIndex + numCells + (d * numCellsY * numCellsZ)) % numCells
-
-// General
-// (thisCellIndex + numCells + (dz * numCellsY * numCellsZ) + (dy * numCellsZ) + (dx)) % numCells
+// Not yet correct: Need to check each cell, doesn't seem to be working for edges
 
 
-(thisCellIndex + numCells + dx + (dy * numCellsZ) + (dz * numCellsY * numCellsZ)) % numCells
+// how the cell index is computed
+// thisCellIndex = ((pos[i].x + (sizeX/2))/numCellsX) * numCellsY * numCellsZ + ((pos[i].y + (sizeY/2))/numCellsY) * numCellsZ + ((pos[i].z + (sizeZ/2))/numCellsZ);
+
+int[] findNeighborCells(int thisCellIndex, int numCellsX, int numCellsY, int numCellsZ) {
+    int neighborIndexes[27];
+    int numCells = numCellsX * numCellsY * numCellsZ;
+
+    // This cell
+    neighborIndexes[0] = thisCellIndex;
+
+    // X-direction
+    neighborIndexes[1] = (thisCellIndex + numCells - 1) % numCells; // cell to left -- need to check
+    neighborIndexes[2] = (thisCellIndex + numCells + 1) % numCells; // cell to right -- not right (should it be numCellsX in the middle?)
+
+    // Y-direction
+    neighborIndexes[3] = (thisCellIndex + numCells + (-1 * numCellsZ)) % numCells; // cell above -- need to check
+    neighborIndexes[4] = (thisCellIndex + numCells + (1 * numCellsZ)) % numCells; // cell below -- need to check
+
+    // Z-direction
+    neighborIndexes[5] = (thisCellIndex + numCells + (-1 * numCellsY * numCellsZ)) % numCells; // cell behind -- need to check
+    neighborIndexes[6] = (thisCellIndex + numCells + (1 * numCellsY * numCellsZ)) % numCells; // cell in front -- need to check
 
 
-// Compute the scalar cell index
-thisCellIndex = ((pos[i].x + (sizeX/2))/numCellsX) * numCellsY * numCellsZ + ((pos[i].y + (sizeY/2))/numCellsY) * numCellsZ + ((pos[i].z + (sizeZ/2))/numCellsZ);
+// NOT YET IMPLEMENTED/CORRECT:
+    // X-Y
+    neighborIndexes[7] = (thisCellIndex + numCells - 1 + (-1 * numCellsZ)) % numCells; // cell above and left
+    neighborIndexes[8] = (thisCellIndex + numCells + 1 + (-1 * numCellsZ)) % numCells; // cell above and right
+    neighborIndexes[9] = (thisCellIndex + numCells - 1 + (1 * numCellsZ)) % numCells; // cell below and left
+    neighborIndexes[10] = (thisCellIndex + numCells + 1 + (1 * numCellsZ)) % numCells; // cell below and right
 
-// Works with edges
-// X-direction
-surrounding[13] = thisCellIndex; // this cell
-surrounding[12] = (thisCellIndex + numCells + (-1 * numCellsY * numCellsZ)) % numCells; // cell to left
-surrounding[14] = (thisCellIndex + numCells + (1 * numCellsY * numCellsZ)) % numCells; // cell to right
+    // X-Z
+    neighborIndexes[11] = ; // cell behind and left
+    neighborIndexes[12] = ; // cell behind and right
+    neighborIndexes[13] = ; // cell in front and left
+    neighborIndexes[14] = ; // cell in front and right
 
-//
-surrounding[10] = (thisCellIndex + numCells + (-1 * numCellsZ)) % numCells; // cell above
-surrounding[16] = (thisCellIndex + numCells + (1 * numCellsZ)) % numCells; // cell below
+    // Y-Z
+    neighborIndexes[15] = ; // cell above and behind
+    neighborIndexes[16] = ; // cell above and in front
+    neighborIndexes[17] = ; // cell below and behind
+    neighborIndexes[18] = ; // cell below and in front
 
-urrounding[4] = thisCellIndex - (numCellsX * numCellsY); // cell in front of
-surrounding[22] = thisCellIndex + (numCellsX * numCellsY); // cell behind
+    // X-Y-Z
+    neighborIndexes[19] = ; // cell above, left, behind
+    neighborIndexes[20] = ; // cell above, right, behind
+    neighborIndexes[21] = ; // cell above, left, in front
+    neighborIndexes[22] = ; // cell above, right, in front
 
+    neighborIndexes[23] = ; // cell below, left, behind
+    neighborIndexes[24] = ; // cell below, right, behind
+    neighborIndexes[25] = ; // cell below, left, in front
+    neighborIndexes[26] = ; // cell below, right, in front
 
-
-
-
-
-if (posZ == 0) {
-
-} else if (posZ == (numCellsZ - 1)) { // If the cell is on an edge in the Z dimension
-
-} else { // If the cell is not on an edge in the Z dimension
-    s
+    return neighborIndexes;
 }
-
-if (edgeX == 0) && (edgeY == 0) {
-    surrounding[9] = thisCellIndex - (numCellsX - 1);
-    surrounding[11] = thisCellIndex + (numCellsX - 1);
-    surrounding[15] = thisCellIndex - (numCellsX + 1);
-    surrounding[17] = thisCellIndex + (numCellsX + 1);
-}
-if (edgeX == 0) && (edgeZ == 0) {
-    surrounding[3] = thisCellIndex - (numCellsX * numCellsY) - 1;
-    surrounding[5] = thisCellIndex - (numCellsX * numCellsY) + 1;
-    surrounding[21] = thisCellIndex + (numCellsX * numCellsY) - 1;
-    surrounding[23] = thisCellIndex + (numCellsX * numCellsY) + 1;
-}
-if (edgeY == 0) && (edgeZ == 0) {
-    surrounding[1] = thisCellIndex - numCellsX - (numCellsX * numCellsY);
-    surrounding[7] = thisCellIndex + numCellsX - (numCellsX * numCellsY);
-    surrounding[19] = thisCellIndex - numCellsX + (numCellsX * numCellsY);
-    surrounding[25] = thisCellIndex + numCellsX + (numCellsX * numCellsY);
-}
-if (edgeX == 0) && (edgeY == 0) && (edgeZ == 0) {
-    surrounding[0] = thisCellIndex - numCellsX - (numCellsX * numCellsY) - 1;
-    surrounding[2] = thisCellIndex - numCellsX - (numCellsX * numCellsY) + 1;
-    surrounding[6] = thisCellIndex + numCellsX - (numCellsX * numCellsY) - 1;
-    surrounding[8] = thisCellIndex + numCellsX - (numCellsX * numCellsY) + 1;
-
-    surrounding[18] = thisCellIndex - numCellsX + (numCellsX * numCellsY) - 1;
-    surrounding[20] = thisCellIndex - numCellsX + (numCellsX * numCellsY) + 1;
-    surrounding[24] = thisCellIndex + numCellsX + (numCellsX * numCellsY) - 1;
-    surrounding[26] = thisCellIndex + numCellsX + (numCellsX * numCellsY) + 1;
-}
-
-// We now have an array of indexes for the neigboring cells, assuming none are edges.

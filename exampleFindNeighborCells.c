@@ -5,40 +5,49 @@ int surrounding[27]; // Array to store indexes of neighbor cells
 //   |            In Front            |  |            This Layer          |  |             Behind             |
 //   00  01  02  03  04  05  06  07  08  09  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26
 
-// edge check may not be accurate
-int posX, posY, posZ;
-posX = thisCellIndex % numCellsX; // Check if cell is an edge in X dimension (position "0" or "numCellsX - 1" horizontally)
+// X
+// (thisCellIndex + numCells + (d)) % numCells
 
-posY = ; // Check if cell is an edge in Y dimension (position "0" or "numCellsY - 1" vertically)
-posZ = ; // Check if cell is an edge in Z dimension (position "0" or "numCellsZ - 1" z-direction)
+// Y
+// (thisCellIndex + numCells + (d * numCellsZ)) % numCells
 
-surrounding[13] = thisCellIndex;
+// Z
+// (thisCellIndex + numCells + (d * numCellsY * numCellsZ)) % numCells
 
-if (posX == 0) { // If the cell is on left edge in the X dimension
-    surrounding[12] = thisCellIndex + (numCellsX - 1);
-    surrounding[14] = thisCellIndex + 1;
-} else if (posX == (numCellsX - 1)) { // If the cell is on right edge in the X dimension
-    surrounding[12] = thisCellIndex - 1;
-    surrounding[14] = thisCellIndex - (numCellsX - 1);
-} else { // If the cell is not on an edge in the X dimension
-    surrounding[12] = thisCellIndex - 1;
-    surrounding[14] = thisCellIndex + 1;
-}
+// General
+// (thisCellIndex + numCells + (dz * numCellsY * numCellsZ) + (dy * numCellsZ) + (dx)) % numCells
 
-if (posY == 0) {
-} else if (posY == (numCellsY - 1)) { // If the cell is on an edge in the Y dimension
-} else { // If the cell is not on an edge in the Y dimension
-    surrounding[10] = thisCellIndex - numCellsY;
-    surrounding[16] = thisCellIndex + numCellsY;
-}
+
+(thisCellIndex + numCells + dx + (dy * numCellsZ) + (dz * numCellsY * numCellsZ)) % numCells
+
+
+// Compute the scalar cell index
+thisCellIndex = ((pos[i].x + (sizeX/2))/numCellsX) * numCellsY * numCellsZ + ((pos[i].y + (sizeY/2))/numCellsY) * numCellsZ + ((pos[i].z + (sizeZ/2))/numCellsZ);
+
+// Works with edges
+// X-direction
+surrounding[13] = thisCellIndex; // this cell
+surrounding[12] = (thisCellIndex + numCells + (-1 * numCellsY * numCellsZ)) % numCells; // cell to left
+surrounding[14] = (thisCellIndex + numCells + (1 * numCellsY * numCellsZ)) % numCells; // cell to right
+
+//
+surrounding[10] = (thisCellIndex + numCells + (-1 * numCellsZ)) % numCells; // cell above
+surrounding[16] = (thisCellIndex + numCells + (1 * numCellsZ)) % numCells; // cell below
+
+urrounding[4] = thisCellIndex - (numCellsX * numCellsY); // cell in front of
+surrounding[22] = thisCellIndex + (numCellsX * numCellsY); // cell behind
+
+
+
+
+
 
 if (posZ == 0) {
 
 } else if (posZ == (numCellsZ - 1)) { // If the cell is on an edge in the Z dimension
 
 } else { // If the cell is not on an edge in the Z dimension
-    surrounding[4] = thisCellIndex - (numCellsX * numCellsY);
-    surrounding[22] = thisCellIndex + (numCellsX * numCellsY);
+    s
 }
 
 if (edgeX == 0) && (edgeY == 0) {

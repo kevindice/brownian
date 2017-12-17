@@ -213,12 +213,6 @@ int main(int argc, char* argv[]) {
                     currentAtomInMyCell = cellList[currentAtomInMyCell];
                 }
             }
-
-            // set j to the next atom's index
-            for (int j = i+1; j < n; j++) {
-                Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]); // Set d to the distance of the two atoms
-                double dist = d.length(); // get the size of the distance
-            }
         }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 

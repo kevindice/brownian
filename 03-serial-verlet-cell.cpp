@@ -115,15 +115,15 @@ int main(int argc, char* argv[]) {
     maxY = ceil(maxY);
     maxZ = ceil(maxZ);
 
-    printf("Simulation Space MIN - x: %f, y: %f, z: %f\n", minX, minY, minZ);
-    printf("Simulation Space MAX - x: %f, y: %f, z: %f\n", maxX, maxY, maxZ);
+    // printf("Simulation Space MIN - x: %f, y: %f, z: %f\n", minX, minY, minZ);
+    // printf("Simulation Space MAX - x: %f, y: %f, z: %f\n", maxX, maxY, maxZ);
 
     // Divide up the space and create the cell lists
     sizeX = abs(minX) + abs(maxX);
     sizeY = abs(minY) + abs(maxY);
     sizeZ = abs(minZ) + abs(maxZ);
 
-    printf("Simulation Size - x: %d, y: %d, z: %d\n", sizeX, sizeY, sizeZ);
+    // printf("Simulation Size - x: %d, y: %d, z: %d\n", sizeX, sizeY, sizeZ);
 
     double cellSize = MAX_INTERACTION_RADIUS + RADIUS_BUFFER_PER_STEP * (VERLET_REBUILD_INT - 1);
 
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
 
     // each cell will be cellSize big, except for the last cell
 
-    printf("Cell Size: %f, NumCellsX: %d, NumCellsY: %d, NumCellsZ: %d\n", cellSize, numCellsX, numCellsY, numCellsZ);
+    // printf("Cell Size: %f, NumCellsX: %d, NumCellsY: %d, NumCellsZ: %d\n", cellSize, numCellsX, numCellsY, numCellsZ);
 
     // Build the Linked List:
     int cellList[n]; // cellList[i] holds the atom index to which the ith atom points.
@@ -226,8 +226,8 @@ int main(int argc, char* argv[]) {
                     verlet_index[i]++;
                 }
             }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
         }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         // Update position.
         for (int i = 0; i < n; i++) {

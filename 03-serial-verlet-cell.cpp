@@ -15,6 +15,8 @@
 #define RADIUS_BUFFER_PER_STEP 2
 #define VERLET_REBUILD_INT 2
 
+#define SURROUNDING_CELL_COUNT 27
+
 
 int scalarIndexCompose(int x, int y, int z, int dx, int dy, int dz, int numCellsX, int numCellsY, int numCellsZ) {
     return ((dx + x) % numCellsX) + ((dy + y) % numCellsY) * numCellsX + ((dz + z) % numCellsZ) * numCellsX * numCellsY;
@@ -36,7 +38,7 @@ int* scalarIndexDecompose(int numCellsX, int numCellsY, int numCellsZ, int thisC
 
 
 int* findNeighborCells(int thisCellIndex, int numCellsX, int numCellsY, int numCellsZ) {
-    static int neighborIndexes[27];
+    static int neighborIndexes[SURROUNDING_CELL_COUNT];
 
     int neighborIndexesIndex = 0;
 
@@ -190,6 +192,7 @@ int main(int argc, char* argv[]) {
 
     long int s;
     int *neighborIndexes;
+    neighborIndexes = new int[SURROUNDING_CELL_COUNT];
     for (s = 1; s <= steps; s++) {
         // Get the force of the environment.
         for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
@@ -206,7 +209,7 @@ int main(int argc, char* argv[]) {
                 printf("I am cellIndex: %d, my neighbors are: ", thisCellIndex);
 
                 neighborIndexes = findNeighborCells(thisCellIndex, numCellsX, numCellsY, numCellsZ);
-                for (int i = 0; i < sizeof(neighborIndexes); i++) {
+                for (int i = 0; i < SURROUNDING_CELL_COUNT; i++) {
                     printf("%d, ",neighborIndexes[i]);
                 }
                 printf("\n\n\n");

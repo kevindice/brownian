@@ -17,7 +17,7 @@ public:
 
 class BaseGrid {
   friend class SparseGrid;
- 
+
 private:
   // Initialize the variables that get used a lot.
   // Also, allocate the main value array.
@@ -35,7 +35,7 @@ public:
     nx = abs(nx0);
     ny = abs(ny0);
     nz = abs(nz0);
-    
+
     init();
     zero();
   }
@@ -107,7 +107,7 @@ public:
   // The grid spacing is always a bit larger than dx.
   BaseGrid(Matrix3 box, Vector3 origin0, double dx) {
     dx = fabs(dx);
-    
+
     // Tile the grid into the system box.
     // The grid spacing is always a bit larger than dx.
     nx = int(floor(box.ex().length()/dx))-1;
@@ -129,7 +129,7 @@ public:
   // The grid spacing is always a bit smaller than dx.
   BaseGrid(Matrix3 box, double dx, double dy, double dz) {
     dx = fabs(dx);
-    
+
     // Tile the grid into the system box.
     // The grid spacing is always a bit smaller than dx.
     nx = int(ceil(box.ex().length()/dx));
@@ -153,7 +153,7 @@ public:
     nz = g.nz;
     basis = g.basis;
     origin = g.origin;
-    
+
     init();
     for (int i = 0; i < size; i++) val[i] = g.val[i];
   }
@@ -166,7 +166,7 @@ public:
     nz = g.nz;
     basis = g.basis;
     origin = g.origin;
-    
+
     init();
     for (int i = 0; i < size; i++) val[i] = g.val[i];
 
@@ -202,13 +202,13 @@ public:
       exit(-1);
     }
     //printf("Reading dx file %s...\n", fileName);
-    
+
     size = 0;
     nx = 0;
     ny = 0;
     nz = 0;
     basis = Matrix3(1.0);
-    origin = Vector3(0.0);    
+    origin = Vector3(0.0);
 
     int n = 0;
     double x, y, z;
@@ -221,7 +221,7 @@ public:
       int len = strlen(line);
       if (len < 2) continue;
       if (line[0] == '#') continue;
-    
+
       if (String::isInt(line[0]) && n < size) {
 	// Read grid values.
 	nRead = sscanf(line, "%lf %lf %lf", &x, &y, &z);
@@ -276,7 +276,7 @@ public:
 	  // Get the system dimensions.
 	  if (line[7] != '1') continue;
 	  int read = sscanf(line, "object 1 class gridpositions counts %d %d %d\n", &nx, &ny, &nz);
-	  //printf("Size: %d %d %d\n", nx, ny, nz);
+	  printf("Size: %d %d %d\n", nx, ny, nz);
 	  if (read == 3) {
 	    size = nx*ny*nz;
 	    nynz = ny*nz;
@@ -296,8 +296,8 @@ public:
       printf("first value: %10g, final value: %.10g\n", val[0], val[n-1]);
       exit(-1);
     }
-  }  
-  
+  }
+
   // Write without comments.
   virtual void write(const char* fileName) const {
     write(fileName, "");
@@ -321,7 +321,7 @@ public:
     fprintf(out, "delta %.12g %.12g %.12g\n", basis.exz, basis.eyz, basis.ezz);
     fprintf(out, "object 2 class gridconnections counts %d %d %d\n", nx, ny, nz);
     fprintf(out, "object 3 class array type double rank 0 items %d data follows\n", size);
-    
+
     // Write the data.
     int penultima = 3*(size/3);
     int mod = size - penultima;
@@ -357,14 +357,14 @@ public:
     for (int i = 0; i < size; i++) fprintf(out, "%.12g\n", val[i]);
     fclose(out);
   }
- 
+
   // Write the valies in a single column.
   virtual void writePotential(const char* fileName) const {
     FILE* out = fopen(fileName, "w");
     for (int i = 0; i < size; i++) fprintf(out, "%.12g\n", val[i]);
     fclose(out);
   }
-  
+
   virtual ~BaseGrid() {
     delete[] val;
   }
@@ -377,7 +377,7 @@ public:
   void zero() {
     for (int i = 0; i < size; i++) val[i] = 0.0;
   }
-  
+
   bool setValue(int j, double v) {
     if (j < 0 || j >= size) return false;
     val[j] = v;
@@ -403,7 +403,7 @@ public:
     if (ix < 0 || ix >= nx) return 0.0;
     if (iy < 0 || iy >= ny) return 0.0;
     if (iz < 0 || iz >= nz) return 0.0;
-    
+
     int j = iz + iy*nz + ix*ny*nz;
     return val[j];
   }
@@ -461,10 +461,10 @@ public:
   int indexY(int j) const { return (j/nz)%ny; }
   int indexZ(int j) const { return j%nz; }
   int index(int ix, int iy, int iz) const { return iz + iy*nz + ix*ny*nz; }
-  
+
   int index(Vector3 r) const {
     Vector3 l = basisInv.transform(r-origin);
-    
+
     int ix = int(floor(l.x));
     int iy = int(floor(l.y));
     int iz = int(floor(l.z));
@@ -472,13 +472,13 @@ public:
     ix = wrap(ix, nx);
     iy = wrap(iy, ny);
     iz = wrap(iz, nz);
-    
+
     return iz + iy*nz + ix*ny*nz;
   }
 
   int nearestIndex(Vector3 r) const {
     Vector3 l = basisInv.transform(r-origin);
-    
+
     int ix = int(floor(l.x + 0.5));
     int iy = int(floor(l.y + 0.5));
     int iz = int(floor(l.z + 0.5));
@@ -486,7 +486,7 @@ public:
     ix = wrap(ix, nx);
     iy = wrap(iy, ny);
     iz = wrap(iz, nz);
-    
+
     return iz + iy*nz + ix*ny*nz;
   }
 
@@ -507,11 +507,11 @@ public:
   void setOrigin(const Vector3& o) {
     origin = o;
   }
-  
+
   // A matrix defining the basis for the entire system.
   Matrix3 getBox() const {
     return Matrix3(nx*basis.ex(), ny*basis.ey(), nz*basis.ez());
-  } 
+  }
   // The longest diagonal of the system.
   Vector3 getExtent() const {
     return basis.transform(Vector3(nx,ny,nz));
@@ -566,7 +566,7 @@ public:
     return sum/size;
   }
 
-  
+
   // Compute the average profile along an axis.
   // Assumes that the grid axis with index "axis" is aligned with the world axis of index "axis".
   void averageProfile(const char* fileName, int axis) {
@@ -589,7 +589,7 @@ public:
     n[0] = nx;
     n[1] = ny;
     n[2] = nz;
-   
+
     for (int i0 = 0; i0 < n[dir0]; i0++) {
       double sum = 0;
 
@@ -599,7 +599,7 @@ public:
 	  sum += val[j];
 	}
       }
-      
+
       double v = sum/(n[dir1]*n[dir2]);
       double x = 0.0;
       switch (dir0) {
@@ -633,7 +633,7 @@ public:
     int homeX = int(floor(l.x));
     int homeY = int(floor(l.y));
     int homeZ = int(floor(l.z));
-    
+
     // Get the array jumps.
     int jump[3];
     jump[0] = nz*ny;
@@ -663,21 +663,21 @@ public:
     for (int ix = 0; ix < 4; ix++) {
       for (int iy = 0; iy < 4; iy++) {
 	for (int iz = 0; iz < 4; iz++) {
-	  // Wrap around the periodic boundaries. 
+	  // Wrap around the periodic boundaries.
 	  int jx = ix-1 + home[0];
 	  jx = wrap(jx, g[0]);
 	  int jy = iy-1 + home[1];
 	  jy = wrap(jy, g[1]);
 	  int jz = iz-1 + home[2];
 	  jz = wrap(jz, g[2]);
-	  
+
 	  int ind = jz*jump[2] + jy*jump[1] + jx*jump[0];
 	  g1[ix][iy][iz] = val[ind];
 	}
       }
     }
     double a0, a1, a2, a3;
-  
+
     // Mix along x.
     double g2[4][4];
     for (int iy = 0; iy < 4; iy++) {
@@ -699,7 +699,7 @@ public:
       a2 = 0.5*(2*g2[0][iz] - 5*g2[1][iz] + 4*g2[2][iz] - g2[3][iz]);
       a1 = 0.5*(-g2[0][iz] + g2[2][iz]);
       a0 = g2[1][iz];
-   
+
       g3[iz] = a3*w[1]*w[1]*w[1] + a2*w[1]*w[1] + a1*w[1] + a0;
     }
 
@@ -719,7 +719,7 @@ public:
     int homeX = int(floor(l.x));
     int homeY = int(floor(l.y));
     int homeZ = int(floor(l.z));
-    
+
     // Get the array jumps.
     int jump[3];
     jump[0] = nz*ny;
@@ -749,14 +749,14 @@ public:
     for (int ix = 0; ix < 2; ix++) {
       for (int iy = 0; iy < 2; iy++) {
 	for (int iz = 0; iz < 2; iz++) {
-	  // Wrap around the periodic boundaries. 
+	  // Wrap around the periodic boundaries.
 	  int jx = ix + home[0];
 	  jx = wrap(jx, g[0]);
 	  int jy = iy + home[1];
 	  jy = wrap(jy, g[1]);
 	  int jz = iz + home[2];
 	  jz = wrap(jz, g[2]);
-	  
+
 	  int ind = jz*jump[2] + jy*jump[1] + jx*jump[0];
 	  g1[ix][iy][iz] = val[ind];
 	}
@@ -769,7 +769,7 @@ public:
       for (int iz = 0; iz < 2; iz++) {
 
 	// p = w[0] * g[0][iy][iz] + (1-w[0]) * g[1][iy][iz]
-	// 
+	//
 
 	g2[iy][iz] = (1.0-w[0])*g1[0][iy][iz] + w[0]*g1[1][iy][iz];
       }
@@ -797,7 +797,7 @@ public:
     int homeX = int(floor(l.x));
     int homeY = int(floor(l.y));
     int homeZ = int(floor(l.z));
-    
+
     // Get the array jumps with shifted indices.
     int jump[3];
     jump[0] = nz*ny;
@@ -827,21 +827,21 @@ public:
     for (int ix = 0; ix < 4; ix++) {
       for (int iy = 0; iy < 4; iy++) {
 	for (int iz = 0; iz < 4; iz++) {
-	  // Wrap around the periodic boundaries. 
+	  // Wrap around the periodic boundaries.
 	  int jx = ix-1 + home[0];
 	  jx = wrap(jx, g[0]);
 	  int jy = iy-1 + home[1];
 	  jy = wrap(jy, g[1]);
 	  int jz = iz-1 + home[2];
 	  jz = wrap(jz, g[2]);
-	  
+
 	  int ind = jz*jump[2] + jy*jump[1] + jx*jump[0];
 	  g1[ix][iy][iz] = val[ind];
 	}
       }
     }
     double a0, a1, a2, a3;
-  
+
     // Mix along x, taking the derivative.
     double g2[4][4];
     for (int iy = 0; iy < 4; iy++) {
@@ -864,7 +864,7 @@ public:
       a2 = 0.5*(2*g2[0][iz] - 5*g2[1][iz] + 4*g2[2][iz] - g2[3][iz]);
       a1 = 0.5*(-g2[0][iz] + g2[2][iz]);
       a0 = g2[1][iz];
-   
+
       g3[iz] = a3*w[1]*w[1]*w[1] + a2*w[1]*w[1] + a1*w[1] + a0;
     }
 
@@ -883,7 +883,7 @@ public:
     int homeX = int(floor(l.x));
     int homeY = int(floor(l.y));
     int homeZ = int(floor(l.z));
-    
+
     // Get the array jumps with shifted indices.
     int jump[3];
     jump[0] = nz*ny;
@@ -913,21 +913,21 @@ public:
     for (int ix = 0; ix < 4; ix++) {
       for (int iy = 0; iy < 4; iy++) {
 	for (int iz = 0; iz < 4; iz++) {
-	  // Wrap around the periodic boundaries. 
+	  // Wrap around the periodic boundaries.
 	  int jx = ix-1 + home[0];
 	  jx = wrap(jx, g[0]);
 	  int jy = iy-1 + home[1];
 	  jy = wrap(jy, g[1]);
 	  int jz = iz-1 + home[2];
 	  jz = wrap(jz, g[2]);
-	  
+
 	  int ind = jz*jump[2] + jy*jump[1] + jx*jump[0];
 	  g1[ix][iy][iz] = val[ind];
 	}
       }
     }
     double a0, a1, a2, a3;
-  
+
     // Mix along x, taking the derivative.
     double g2[4][4];
     for (int iy = 0; iy < 4; iy++) {
@@ -949,7 +949,7 @@ public:
       a2 = 0.5*(2*g2[0][iz] - 5*g2[1][iz] + 4*g2[2][iz] - g2[3][iz]);
       a1 = 0.5*(-g2[0][iz] + g2[2][iz]);
       a0 = g2[1][iz];
-   
+
       //g3[iz] = a3*w[1]*w[1]*w[1] + a2*w[1]*w[1] + a1*w[1] + a0;
       g3[iz] = 3.0*a3*w[1]*w[1] + 2.0*a2*w[1] + a1;
     }
@@ -969,7 +969,7 @@ public:
     int homeX = int(floor(l.x));
     int homeY = int(floor(l.y));
     int homeZ = int(floor(l.z));
-    
+
     // Get the array jumps with shifted indices.
     int jump[3];
     jump[0] = nz*ny;
@@ -999,21 +999,21 @@ public:
     for (int ix = 0; ix < 4; ix++) {
       for (int iy = 0; iy < 4; iy++) {
 	for (int iz = 0; iz < 4; iz++) {
-	  // Wrap around the periodic boundaries. 
+	  // Wrap around the periodic boundaries.
 	  int jx = ix-1 + home[0];
 	  jx = wrap(jx, g[0]);
 	  int jy = iy-1 + home[1];
 	  jy = wrap(jy, g[1]);
 	  int jz = iz-1 + home[2];
 	  jz = wrap(jz, g[2]);
-	  
+
 	  int ind = jz*jump[2] + jy*jump[1] + jx*jump[0];
 	  g1[ix][iy][iz] = val[ind];
 	}
       }
     }
     double a0, a1, a2, a3;
-  
+
     // Mix along x, taking the derivative.
     double g2[4][4];
     for (int iy = 0; iy < 4; iy++) {
@@ -1035,7 +1035,7 @@ public:
       a2 = 0.5*(2*g2[0][iz] - 5*g2[1][iz] + 4*g2[2][iz] - g2[3][iz]);
       a1 = 0.5*(-g2[0][iz] + g2[2][iz]);
       a0 = g2[1][iz];
-   
+
       g3[iz] = a3*w[1]*w[1]*w[1] + a2*w[1]*w[1] + a1*w[1] + a0;
     }
 
@@ -1102,9 +1102,9 @@ public:
     l.x = wrapDiff(l.x, nx);
     l.y = wrapDiff(l.y, ny);
     l.z = wrapDiff(l.z, nz);
-	
+
     double length2 = basis.transform(l).length2();
-	
+
     for (int dx = -1; dx <= 1; dx++) {
       for (int dy = -1; dy <= 1; dy++) {
 	for (int dz = -1; dz <= 1; dz++) {
@@ -1117,7 +1117,7 @@ public:
 	}
       }
     }
-	
+
     return basis.transform(l);
   }
 
@@ -1128,7 +1128,7 @@ public:
     int jx = indexX(j);
     int jy = indexY(j);
     int jz = indexZ(j);
-  
+
     int k = 0;
     for (int ix = -1; ix <= 1; ix++) {
       for (int iy = -1; iy <= 1; iy++) {
@@ -1146,7 +1146,7 @@ public:
     int jx = indexX(j);
     int jy = indexY(j);
     int jz = indexZ(j);
-  
+
     IndexList ret;
     int k = 0;
     for (int ix = -1; ix <= 1; ix++) {
@@ -1163,7 +1163,7 @@ public:
     }
     return ret;
   }
-  
+
   // Get the values at the neighbors of a node.
   // Note that homeX, homeY, and homeZ do not need to be wrapped,
   // since we do it here.
@@ -1178,7 +1178,7 @@ public:
     }
   }
 
- 
+
 protected:
   Vector3 origin;
   Matrix3 basis;

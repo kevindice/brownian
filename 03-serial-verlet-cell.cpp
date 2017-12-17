@@ -64,8 +64,6 @@ int main(int argc, char* argv[]) {
     const int n = initCoord.length();
     Vector3* pos = new Vector3[n];
     Vector3* force = new Vector3[n];
-    int verlet [n][n];
-    int verlet_index [n];
     int* type = new int[n];
     // Initialize positions.
     for (int i = 0; i < n; i++) {
@@ -220,11 +218,6 @@ int main(int argc, char* argv[]) {
             for (int j = i+1; j < n; j++) {
                 Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]); // Set d to the distance of the two atoms
                 double dist = d.length(); // get the size of the distance
-
-                if(dist <= MAX_INTERACTION_RADIUS) { // If the distance is less than or equal to the MAX_INTERACTION_RADIUS
-                    verlet[i][verlet_index[i]] = j; // Put the index of the j cell into this cell's verlet list
-                    verlet_index[i]++;
-                }
             }
         }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////

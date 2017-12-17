@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
         // Compute the scalar cell index
         thisCellIndex = findCellIndex(pos[i].x, pos[i].y, pos[i].z,numCellsX, numCellsY, numCellsZ, sizeX, sizeY, sizeZ);
 
-        printf("x: %f, y: %f, z: %f, thisCellIndex: %d\n", pos[i].x + (sizeX/2), pos[i].y + (sizeY/2), pos[i].z + (sizeZ/2), thisCellIndex);
+        //printf("x: %f, y: %f, z: %f, thisCellIndex: %d\n", pos[i].x + (sizeX/2), pos[i].y + (sizeY/2), pos[i].z + (sizeZ/2), thisCellIndex);
 
         // Link to any other atoms in that cell
         cellList[i] = head[thisCellIndex];
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
 
     long int s;
 
-    int dx, dy, dz, x, y, z, currentNeighborIndex;
+    int dx, dy, dz, x, y, z, currentNeighborIndex, currentAtomInMyCell, currentAtomInNeigborCell;
     for (s = 1; s <= steps; s++) {
         // Get the force of the environment.
         for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
@@ -176,8 +176,12 @@ int main(int argc, char* argv[]) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
             for (int i = 0; i < numCells; i++) { // For each cell
 
-                printf("\n%d: ",i);
+                // If this cell contains no atoms, skip
+                if (head[i] == -1) {
+                    continue;
+                }
 
+                // Get the neighbors for this calculation
                 for (int n = 0; n < 14; n++) {
 
                     dx = n/9 % 3 - 1;
@@ -192,15 +196,31 @@ int main(int argc, char* argv[]) {
 
                     currentNeighborIndex = ((dx + x + 1) % numCellsX) + ((dy + y + 1) % numCellsY) * numCellsX + ((dz + z + 1) % numCellsZ) * numCellsX * numCellsY;
 
+                    // If there are no atoms in the current neighbor cell, skip
                     if (head[currentNeighborIndex] == -1) {
                         continue;
                     }
 
-                    printf("%d, ", currentNeighborIndex);
+                    currentAtomInMyCell = cellList[head[i]];
+                    currentAtomInNeigborCell = cellList[head[currentNeighborIndex]];
 
+                    while (cellList[currentAtomInMyCell] != -1) {
+                        while (cellList[currentAtomInNeigborCell] != -1) {
+                            // Do stuff
+                            Vector3 d = sysEnergy.wrapDiff(pos[currentAtomInMyCell] - pos[currentAtomInNeigborCell]);
+                            double dist = d.length();
+                        	double fMag = -interactEnergy.computeGrad(dist);
+                        	Vector3 f = fMag/dist*d;
+                        	force[currentAtomInMyCell] += f;
+                        	force[currentAtomInNeigborCell] -= f;
+
+                            // Go to next atom in neighbor cell
+                            currentAtomInNeigborCell = cellList[currentAtomInNeigborCell];
+                        }
+                        // Go to next atom in my cell
+                        currentAtomInMyCell = cellList[currentAtomInMyCell];
+                    }
                 }
-
-
 
                 // set j to the next atom's index
                 for (int j = i+1; j < n; j++) {
@@ -214,18 +234,6 @@ int main(int argc, char* argv[]) {
                 }
             }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-        }
-
-        // Particle-particle interactions.
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < verlet_index[i]; j++) {
-                Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[verlet[i][j]]);
-                double dist = d.length();
-                double fMag = -interactEnergy.computeGrad(dist);
-                Vector3 f = fMag/dist*d;
-                force[i] += f;
-                force[verlet[i][j]] -= f;
-            }
         }
 
         // Update position.

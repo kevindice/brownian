@@ -80,54 +80,19 @@ int main(int argc, char* argv[]) {
     writer.newFile(pos, type, 0.0, n);
 
     // Figure out min/maxes of simulation space
-    double minX = 0;
-    double minY = 0;
-    double minZ = 0;
-    double maxX = 0;
-    double maxY = 0;
-    double maxZ = 0;
-    int sizeX, sizeY, sizeZ;
-
-    for (int i = 0; i < n; i++) {
-        if (pos[i].x < minX) {
-            minX = pos[i].x;
-        } else if (pos[i].x > maxX) {
-            maxX = pos[i].x;
-        }
-        if (pos[i].y < minY) {
-            minY = pos[i].y;
-        } else if (pos[i].y > maxY) {
-            maxY = pos[i].y;
-        }
-        if (pos[i].z < minZ) {
-            minZ = pos[i].z;
-        } else if (pos[i].z > maxZ) {
-            maxZ = pos[i].z;
-        }
-    }
-
-    minX = floor(minX);
-    minY = floor(minY);
-    minZ = floor(minZ);
-    maxX = ceil(maxX);
-    maxY = ceil(maxY);
-    maxZ = ceil(maxZ);
 
     // printf("Simulation Space MIN - x: %f, y: %f, z: %f\n", minX, minY, minZ);
     // printf("Simulation Space MAX - x: %f, y: %f, z: %f\n", maxX, maxY, maxZ);
 
     // Divide up the space and create the cell lists
-    sizeX = abs(minX) + abs(maxX);
-    sizeY = abs(minY) + abs(maxY);
-    sizeZ = abs(minZ) + abs(maxZ);
 
-    // printf("Simulation Size - x: %d, y: %d, z: %d\n", sizeX, sizeY, sizeZ);
+    // printf("Simulation Size - x: %d, y: %d, z: %d\n", sysEnergy.getNx(), sysEnergy.getNy(), sysEnergy.getNz());
 
     double cellSize = MAX_INTERACTION_RADIUS + RADIUS_BUFFER_PER_STEP * (VERLET_REBUILD_INT - 1);
 
-    int numCellsX = ceil(sizeX / cellSize);
-    int numCellsY = ceil(sizeY / cellSize);
-    int numCellsZ = ceil(sizeZ / cellSize);
+    int numCellsX = ceil(sysEnergy.getNx() / cellSize);
+    int numCellsY = ceil(sysEnergy.getNy() / cellSize);
+    int numCellsZ = ceil(sysEnergy.getNz() / cellSize);
 
     // each cell will be cellSize big, except for the last cell
 
@@ -147,9 +112,9 @@ int main(int argc, char* argv[]) {
     // Put atoms in linked list
     for (int i = 0; i < n; i++) {
         // Compute the scalar cell index
-        thisCellIndex = findCellIndex(pos[i].x, pos[i].y, pos[i].z,numCellsX, numCellsY, numCellsZ, sizeX, sizeY, sizeZ);
+        thisCellIndex = findCellIndex(pos[i].x, pos[i].y, pos[i].z,numCellsX, numCellsY, numCellsZ, sysEnergy.getNx(), sysEnergy.getNy(), sysEnergy.getNz());
 
-        //printf("x: %f, y: %f, z: %f, thisCellIndex: %d\n", pos[i].x + (sizeX/2), pos[i].y + (sizeY/2), pos[i].z + (sizeZ/2), thisCellIndex);
+        //printf("x: %f, y: %f, z: %f, thisCellIndex: %d\n", pos[i].x + (sysEnergy.getNx()/2), pos[i].y + (sysEnergy.getNy()/2), pos[i].z + (sysEnergy.getNz()/2), thisCellIndex);
 
         // Link to any other atoms in that cell
         cellList[i] = head[thisCellIndex];

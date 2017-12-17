@@ -9,7 +9,6 @@
 #include "RandomGsl.H"
 #include "BaseGrid.H"
 #include "TrajectoryWriter.H"
-#include <algorithm>
 
 #define MAX_INTERACTION_RADIUS 12
 #define RADIUS_BUFFER_PER_STEP 2
@@ -168,67 +167,63 @@ int main(int argc, char* argv[]) {
         // Get the force of the environment.
         for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
 
-        if(s % VERLET_REBUILD_INT == 0) {
-            memset(verlet, 0, sizeof(verlet)); // empty the verlet list
-            memset(verlet_index, 0, sizeof(verlet_index)); // empty the verlet index
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-            for (int i = 0; i < numCells; i++) { // For each cell
+        for (int i = 0; i < numCells; i++) { // For each cell
 
-                // If this cell contains no atoms, skip
-                if (head[i] == -1) {
+            // If this cell contains no atoms, skip
+            if (head[i] == -1) {
+                continue;
+            }
+
+            // Get the neighbors for this calculation
+            for (int n = 0; n < 14; n++) {
+
+                dx = n/9 % 3 - 1;
+                dy = n/3 % 3 - 1;
+                dz = n % 3 - 1;
+
+                //printf("%d, %d, %d\n", dx, dy, dz);
+
+                x = i % numCellsX;
+                y = (((i - x)) / numCellsX) % numCellsY;
+                z = (i - y * numCellsX - x) / (numCellsX * numCellsY);
+
+                currentNeighborIndex = ((dx + x + 1) % numCellsX) + ((dy + y + 1) % numCellsY) * numCellsX + ((dz + z + 1) % numCellsZ) * numCellsX * numCellsY;
+
+                // If there are no atoms in the current neighbor cell, skip
+                if (head[currentNeighborIndex] == -1) {
                     continue;
                 }
 
-                // Get the neighbors for this calculation
-                for (int n = 0; n < 14; n++) {
+                currentAtomInMyCell = head[i];
+                currentAtomInNeigborCell = head[currentNeighborIndex];
 
-                    dx = n/9 % 3 - 1;
-                    dy = n/3 % 3 - 1;
-                    dz = n % 3 - 1;
+                while (cellList[currentAtomInMyCell] != -1) { // While there are still atoms in this cell
+                    while (cellList[currentAtomInNeigborCell] != -1) { // While there are still atoms in the neighbor cell
+                        // Do stuff
+                        Vector3 d = sysEnergy.wrapDiff(pos[currentAtomInMyCell] - pos[currentAtomInNeigborCell]);
+                        double dist = d.length();
+                        double fMag = -interactEnergy.computeGrad(dist);
+                        Vector3 f = fMag/dist*d;
+                        force[currentAtomInMyCell] += f;
+                        force[currentAtomInNeigborCell] -= f;
 
-                    //printf("%d, %d, %d\n", dx, dy, dz);
-
-                    x = i % numCellsX;
-                    y = (((i - x)) / numCellsX) % numCellsY;
-                    z = (i - y * numCellsX - x) / (numCellsX * numCellsY);
-
-                    currentNeighborIndex = ((dx + x + 1) % numCellsX) + ((dy + y + 1) % numCellsY) * numCellsX + ((dz + z + 1) % numCellsZ) * numCellsX * numCellsY;
-
-                    // If there are no atoms in the current neighbor cell, skip
-                    if (head[currentNeighborIndex] == -1) {
-                        continue;
+                        // Go to next atom in neighbor cell
+                        currentAtomInNeigborCell = cellList[currentAtomInNeigborCell];
                     }
-
-                    currentAtomInMyCell = head[i];
-                    currentAtomInNeigborCell = head[currentNeighborIndex];
-
-                    while (cellList[currentAtomInMyCell] != -1) { // While there are still atoms in this cell
-                        while (cellList[currentAtomInNeigborCell] != -1) { // While there are still atoms in the neighbor cell
-                            // Do stuff
-                            Vector3 d = sysEnergy.wrapDiff(pos[currentAtomInMyCell] - pos[currentAtomInNeigborCell]);
-                            double dist = d.length();
-                        	double fMag = -interactEnergy.computeGrad(dist);
-                        	Vector3 f = fMag/dist*d;
-                        	force[currentAtomInMyCell] += f;
-                        	force[currentAtomInNeigborCell] -= f;
-
-                            // Go to next atom in neighbor cell
-                            currentAtomInNeigborCell = cellList[currentAtomInNeigborCell];
-                        }
-                        // Go to next atom in my cell
-                        currentAtomInMyCell = cellList[currentAtomInMyCell];
-                    }
+                    // Go to next atom in my cell
+                    currentAtomInMyCell = cellList[currentAtomInMyCell];
                 }
+            }
 
-                // set j to the next atom's index
-                for (int j = i+1; j < n; j++) {
-                    Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]); // Set d to the distance of the two atoms
-                    double dist = d.length(); // get the size of the distance
+            // set j to the next atom's index
+            for (int j = i+1; j < n; j++) {
+                Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]); // Set d to the distance of the two atoms
+                double dist = d.length(); // get the size of the distance
 
-                    if(dist <= MAX_INTERACTION_RADIUS) { // If the distance is less than or equal to the MAX_INTERACTION_RADIUS
-                        verlet[i][verlet_index[i]] = j; // Put the index of the j cell into this cell's verlet list
-                        verlet_index[i]++;
-                    }
+                if(dist <= MAX_INTERACTION_RADIUS) { // If the distance is less than or equal to the MAX_INTERACTION_RADIUS
+                    verlet[i][verlet_index[i]] = j; // Put the index of the j cell into this cell's verlet list
+                    verlet_index[i]++;
                 }
             }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////

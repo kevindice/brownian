@@ -17,49 +17,6 @@
 
 #define SURROUNDING_CELL_COUNT 27
 
-
-int scalarIndexCompose(int x, int y, int z, int dx, int dy, int dz, int numCellsX, int numCellsY, int numCellsZ) {
-    return ((dx + x) % numCellsX) + ((dy + y) % numCellsY) * numCellsX + ((dz + z) % numCellsZ) * numCellsX * numCellsY;
-}
-
-int* scalarIndexDecompose(int numCellsX, int numCellsY, int numCellsZ, int thisCellIndex) {
-    static int xyz[3];
-    int x, y, z;
-
-    x = thisCellIndex % numCellsX;
-    y = (((thisCellIndex - x)) / numCellsX) % numCellsY;
-    z = (thisCellIndex - y * numCellsX - x) / (numCellsX * numCellsY);
-
-    xyz[0] = x;
-    xyz[1] = y;
-    xyz[2] = z;
-    return xyz;
-}
-
-
-int* findNeighborCells(int thisCellIndex, int numCellsX, int numCellsY, int numCellsZ) {
-    static int neighborIndexes[SURROUNDING_CELL_COUNT];
-
-    int neighborIndexesIndex = 0;
-
-    int *xyz;
-
-    for (int i = -1; i <= 1; i++) {
-        for (int j = -1; j <= 1; j++) {
-            for (int k = -1; k <= 1; k++) {
-
-                xyz = scalarIndexDecompose(numCellsX, numCellsY, numCellsZ, thisCellIndex);
-
-                neighborIndexes[neighborIndexesIndex] = scalarIndexCompose(xyz[0], xyz[1], xyz[2], i, j, k, numCellsX, numCellsY, numCellsZ);
-                neighborIndexesIndex++;
-            }
-        }
-
-    }
-
-    return neighborIndexes;
-}
-
 int findCellIndex(int x, int y, int z, int numCellsX, int numCellsY, int numCellsZ, int sizeX, int sizeY, int sizeZ) {
 
     float fx, fy, fz, fnumCellsX, fnumCellsY, fnumCellsZ, fsizeX, fsizeY, fsizeZ;
@@ -207,8 +164,8 @@ int main(int argc, char* argv[]) {
     }
 
     long int s;
-    int *neighborIndexes;
-    neighborIndexes = new int[SURROUNDING_CELL_COUNT];
+
+    int dx, dy, dz, x, y, z, currentNeighborIndex;
     for (s = 1; s <= steps; s++) {
         // Get the force of the environment.
         for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
@@ -217,18 +174,33 @@ int main(int argc, char* argv[]) {
             memset(verlet, 0, sizeof(verlet)); // empty the verlet list
             memset(verlet_index, 0, sizeof(verlet_index)); // empty the verlet index
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-            for (int i = 0; i < n; i++) { // For each cell
-                // Get this atom's cell index
-                thisCellIndex = findCellIndex(pos[i].x, pos[i].y, pos[i].z,numCellsX, numCellsY, numCellsZ, sizeX, sizeY, sizeZ);
+            for (int i = 0; i < numCells; i++) { // For each cell
 
-                // Get the neigbor cells based off of thisCellIndex
-                printf("I am cellIndex: %d, my neighbors are: ", thisCellIndex);
+                printf("\n%d: ",i);
 
-                neighborIndexes = findNeighborCells(thisCellIndex, numCellsX, numCellsY, numCellsZ);
-                for (int i = 0; i < SURROUNDING_CELL_COUNT; i++) {
-                    printf("%d, ",neighborIndexes[i]);
+                for (int n = 0; n < 14; n++) {
+
+                    dx = n/9 % 3 - 1;
+                    dy = n/3 % 3 - 1;
+                    dz = n % 3 - 1;
+
+                    //printf("%d, %d, %d\n", dx, dy, dz);
+
+                    x = i % numCellsX;
+                    y = (((i - x)) / numCellsX) % numCellsY;
+                    z = (i - y * numCellsX - x) / (numCellsX * numCellsY);
+
+                    currentNeighborIndex = ((dx + x + 1) % numCellsX) + ((dy + y + 1) % numCellsY) * numCellsX + ((dz + z + 1) % numCellsZ) * numCellsX * numCellsY;
+
+                    if (head[currentNeighborIndex] == -1) {
+                        continue;
+                    }
+
+                    printf("%d, ", currentNeighborIndex);
+
                 }
-                printf("\n\n\n");
+
+
 
                 // set j to the next atom's index
                 for (int j = i+1; j < n; j++) {

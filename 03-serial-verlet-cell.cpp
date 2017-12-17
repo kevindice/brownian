@@ -15,6 +15,50 @@
 #define RADIUS_BUFFER_PER_STEP 2
 #define VERLET_REBUILD_INT 2
 
+
+int scalarIndexCompose(int x, int y, int z, int dx, int dy, int dz, int numCellsX, int numCellsY, int numCellsZ) {
+    return ((dx + x) % numCellsX) + ((dy + y) % numCellsY) * numCellsX + ((dz + z) % numCellsZ) * numCellsX * numCellsY;
+}
+
+int* scalarIndexDecompose(int numCellsX, int numCellsY, int numCellsZ, int thisCellIndex) {
+    static int xyz[3];
+    int x, y, z;
+
+    x = thisCellIndex % numCellsX;
+    y = (((thisCellIndex - x)) / numCellsX) % numCellsY;
+    z = (thisCellIndex - y * numCellsX - x) / (numCellsX * numCellsY);
+
+    xyz[0] = x;
+    xyz[1] = y;
+    xyz[2] = z;
+    return xyz;
+}
+
+
+int* findNeighborCells(int thisCellIndex, int numCellsX, int numCellsY, int numCellsZ) {
+    static int neighborIndexes[27];
+
+    int neighborIndexesIndex = 0;
+
+    int *xyz;
+
+    for (int i = -1; i <= 1; i++) {
+        for (int j = -1; j <= 1; j++) {
+            for (int k = -1; k <= 1; k++) {
+
+                xyz = scalarIndexDecompose(numCellsX, numCellsY, numCellsZ, thisCellIndex);
+
+                neighborIndexes[neighborIndexesIndex] = scalarIndexCompose(xyz[0], xyz[1], xyz[2], i, j, k, numCellsX, numCellsY, numCellsZ);
+                neighborIndexesIndex++;
+            }
+        }
+
+    }
+
+    return neighborIndexes;
+}
+
+
 int main(int argc, char* argv[]) {
     if (argc != 12) {
         printf("Usage: %s energyDxFile diffuseDxFile interactEnergyFile initFile dt kT steps seed0 outputFormat outputPeriod outputPrefix\n", argv[0]);
@@ -145,6 +189,7 @@ int main(int argc, char* argv[]) {
     }
 
     long int s;
+    int *neighborIndexes;
     for (s = 1; s <= steps; s++) {
         // Get the force of the environment.
         for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
@@ -152,9 +197,22 @@ int main(int argc, char* argv[]) {
         if(s % VERLET_REBUILD_INT == 0) {
             memset(verlet, 0, sizeof(verlet)); // empty the verlet list
             memset(verlet_index, 0, sizeof(verlet_index)); // empty the verlet index
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+            for (int i = 0; i < n; i++) { // For each cell
+                // Get this atom's cell index
+                thisCellIndex = (pos[i].x/sizeX) * numCellsY * numCellsZ + (pos[i].y/sizeY) * numCellsZ + (pos[i].z/sizeZ);
+
+                // Get the neigbor cells based off of thisCellIndex
+                printf("I am cellIndex: %d, my neighbors are: ", thisCellIndex);
+
+                neighborIndexes = findNeighborCells(thisCellIndex, numCellsX, numCellsY, numCellsZ);
+                for (int i = 0; i < sizeof(neighborIndexes); i++) {
+                    printf("%d, ",neighborIndexes[i]);
+                }
+                printf("\n\n\n");
+
                 // set j to the next atom's index
                 for (int j = i+1; j < n; j++) {
-
                     Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]); // Set d to the distance of the two atoms
                     double dist = d.length(); // get the size of the distance
 
@@ -164,6 +222,7 @@ int main(int argc, char* argv[]) {
                     }
                 }
             }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
         }
 
         // Particle-particle interactions.

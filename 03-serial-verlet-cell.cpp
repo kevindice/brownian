@@ -201,11 +201,11 @@ int main(int argc, char* argv[]) {
                         continue;
                     }
 
-                    currentAtomInMyCell = cellList[head[i]];
-                    currentAtomInNeigborCell = cellList[head[currentNeighborIndex]];
+                    currentAtomInMyCell = head[i];
+                    currentAtomInNeigborCell = head[currentNeighborIndex];
 
-                    while (cellList[currentAtomInMyCell] != -1) {
-                        while (cellList[currentAtomInNeigborCell] != -1) {
+                    while (cellList[currentAtomInMyCell] != -1) { // While there are still atoms in this cell
+                        while (cellList[currentAtomInNeigborCell] != -1) { // While there are still atoms in the neighbor cell
                             // Do stuff
                             Vector3 d = sysEnergy.wrapDiff(pos[currentAtomInMyCell] - pos[currentAtomInNeigborCell]);
                             double dist = d.length();

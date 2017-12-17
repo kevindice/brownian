@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
                 y = (((i - x)) / numCellsX) % numCellsY;
                 z = (i - y * numCellsX - x) / (numCellsX * numCellsY);
 
-                currentNeighborIndex = ((dx + x + 1) % numCellsX) + ((dy + y + 1) % numCellsY) * numCellsX + ((dz + z + 1) % numCellsZ) * numCellsX * numCellsY;
+                currentNeighborIndex = ((dx + x + numCellsX) % numCellsX) + ((dy + y + numCellsY) % numCellsY) * numCellsX + ((dz + z + numCellsZ) % numCellsZ) * numCellsX * numCellsY;
 
                 // If there are no atoms in the current neighbor cell, skip
                 if (head[currentNeighborIndex] == -1) {

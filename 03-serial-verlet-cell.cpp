@@ -15,8 +15,6 @@
 #define RADIUS_BUFFER_PER_STEP 2
 #define VERLET_REBUILD_INT 2
 
-#define SURROUNDING_CELL_COUNT 27
-
 int findCellIndex(int x, int y, int z, int numCellsX, int numCellsY, int numCellsZ, int sizeX, int sizeY, int sizeZ) {
 
     float fx, fy, fz, fnumCellsX, fnumCellsY, fnumCellsZ, fsizeX, fsizeY, fsizeZ;

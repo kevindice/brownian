@@ -150,15 +150,16 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
 
         if(s % VERLET_REBUILD_INT == 0) {
-            memset(verlet, 0, sizeof(verlet));
-            memset(verlet_index, 0, sizeof(verlet_index));
-            for (int i = 0; i < n; i++) {
+            memset(verlet, 0, sizeof(verlet)); // empty the verlet list
+            memset(verlet_index, 0, sizeof(verlet_index)); // empty the verlet index
+                // set j to the next atom's index
                 for (int j = i+1; j < n; j++) {
-                    Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
-                    double dist = d.length();
 
-                    if(dist <= MAX_INTERACTION_RADIUS) {
-                        verlet[i][verlet_index[i]] = j;
+                    Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]); // Set d to the distance of the two atoms
+                    double dist = d.length(); // get the size of the distance
+
+                    if(dist <= MAX_INTERACTION_RADIUS) { // If the distance is less than or equal to the MAX_INTERACTION_RADIUS
+                        verlet[i][verlet_index[i]] = j; // Put the index of the j cell into this cell's verlet list
                         verlet_index[i]++;
                     }
                 }

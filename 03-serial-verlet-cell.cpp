@@ -60,6 +60,22 @@ int* findNeighborCells(int thisCellIndex, int numCellsX, int numCellsY, int numC
     return neighborIndexes;
 }
 
+int findCellIndex(int x, int y, int z, int numCellsX, int numCellsY, int numCellsZ, int sizeX, int sizeY, int sizeZ) {
+
+    float fx, fy, fz, fnumCellsX, fnumCellsY, fnumCellsZ, fsizeX, fsizeY, fsizeZ;
+    fx = (float) x;
+    fy = (float) y;
+    fz = (float) z;
+    fnumCellsX = (float) numCellsX;
+    fnumCellsY = (float) numCellsY;
+    fnumCellsZ = (float) numCellsZ;
+    fsizeX = (float) sizeX;
+    fsizeY = (float) sizeY;
+    fsizeZ = (float) sizeZ;
+
+    return (int) floor((fx + (fsizeX/2)) / ceil(fsizeX/fnumCellsX)) + floor((fy + (fsizeY/2)) / ceil(fsizeY/fnumCellsY)) * fnumCellsX + floor((fz + (fsizeZ/2)) / ceil(fsizeZ/fnumCellsZ)) * fnumCellsX * fnumCellsY;
+}
+
 
 int main(int argc, char* argv[]) {
     if (argc != 12) {
@@ -179,7 +195,7 @@ int main(int argc, char* argv[]) {
     // Put atoms in linked list
     for (int i = 0; i < n; i++) {
         // Compute the scalar cell index
-        thisCellIndex = ((pos[i].x + (sizeX/2))/(sizeX/numCellsX)) * numCellsY * numCellsZ + ((pos[i].y + (sizeY/2))/(sizeY/numCellsY)) * numCellsZ + ((pos[i].z + (sizeZ/2))/(sizeZ/numCellsZ));
+        thisCellIndex = findCellIndex(pos[i].x, pos[i].y, pos[i].z,numCellsX, numCellsY, numCellsZ, sizeX, sizeY, sizeZ);
 
         printf("x: %f, y: %f, z: %f, thisCellIndex: %d\n", pos[i].x + (sizeX/2), pos[i].y + (sizeY/2), pos[i].z + (sizeZ/2), thisCellIndex);
 
@@ -203,7 +219,7 @@ int main(int argc, char* argv[]) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
             for (int i = 0; i < n; i++) { // For each cell
                 // Get this atom's cell index
-                thisCellIndex = ((pos[i].x + (sizeX/2))/(sizeX/numCellsX)) * numCellsY * numCellsZ + ((pos[i].y + (sizeY/2))/(sizeY/numCellsY)) * numCellsZ + ((pos[i].z + (sizeZ/2))/(sizeZ/numCellsZ));
+                thisCellIndex = findCellIndex(pos[i].x, pos[i].y, pos[i].z,numCellsX, numCellsY, numCellsZ, sizeX, sizeY, sizeZ);
 
                 // Get the neigbor cells based off of thisCellIndex
                 printf("I am cellIndex: %d, my neighbors are: ", thisCellIndex);

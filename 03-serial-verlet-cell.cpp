@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
     // Put atoms in linked list
     for (int i = 0; i < n; i++) {
         // Compute the scalar cell index
-        thisCellIndex = ((pos[i].x + (sizeX/2))/numCellsX) * numCellsY * numCellsZ + ((pos[i].y + (sizeY/2))/numCellsY) * numCellsZ + ((pos[i].z + (sizeZ/2))/numCellsZ);
+        thisCellIndex = ((pos[i].x + (sizeX/2))/(sizeX/numCellsX)) * numCellsY * numCellsZ + ((pos[i].y + (sizeY/2))/(sizeY/numCellsY)) * numCellsZ + ((pos[i].z + (sizeZ/2))/(sizeZ/numCellsZ));
 
         printf("x: %f, y: %f, z: %f, thisCellIndex: %d\n", pos[i].x + (sizeX/2), pos[i].y + (sizeY/2), pos[i].z + (sizeZ/2), thisCellIndex);
 
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
             for (int i = 0; i < n; i++) { // For each cell
                 // Get this atom's cell index
-                thisCellIndex = (pos[i].x/sizeX) * numCellsY * numCellsZ + (pos[i].y/sizeY) * numCellsZ + (pos[i].z/sizeZ);
+                thisCellIndex = ((pos[i].x + (sizeX/2))/(sizeX/numCellsX)) * numCellsY * numCellsZ + ((pos[i].y + (sizeY/2))/(sizeY/numCellsY)) * numCellsZ + ((pos[i].z + (sizeZ/2))/(sizeZ/numCellsZ));
 
                 // Get the neigbor cells based off of thisCellIndex
                 printf("I am cellIndex: %d, my neighbors are: ", thisCellIndex);

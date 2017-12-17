@@ -121,24 +121,27 @@ int main(int argc, char* argv[]) {
 
     // Build the Linked List:
     int cellList[n]; // cellList[i] holds the atom index to which the ith atom points.
-    int head[n]; // head[c] holds the index of the first atom in the c-th cell, or head[c] = −1 if there is no atom in the cell.
-    int i, j;
+    int numCells = numCellsX * numCellsY * numCellsZ;
+    int head[numCells]; // head[c] holds the index of the first atom in the c-th cell, or head[c] = −1 if there is no atom in the cell.
+    int thisCellIndex;
 
     // Set all heads to -1
-    for (i = 0; i < (numCellsX * numCellsY * numCellsZ); i++) {
+    for (int i = 0; i < (numCellsX * numCellsY * numCellsZ); i++) {
         head[i] = -1;
     }
 
     // Put atoms in linked list
-    for (i=0; i<n; i++) {
+    for (int i = 0; i < n; i++) {
         // Compute the scalar cell index
-        j = (pos[i].x/sizeX) * numCellsY * numCellsZ + (pos[i].y/sizeY) * numCellsZ + (pos[i].z/sizeZ);
+        thisCellIndex = ((pos[i].x + (sizeX/2))/numCellsX) * numCellsY * numCellsZ + ((pos[i].y + (sizeY/2))/numCellsY) * numCellsZ + ((pos[i].z + (sizeZ/2))/numCellsZ);
+
+        printf("x: %f, y: %f, z: %f, thisCellIndex: %d\n", pos[i].x + (sizeX/2), pos[i].y + (sizeY/2), pos[i].z + (sizeZ/2), thisCellIndex);
 
         // Link to any other atoms in that cell
-        cellList[i] = head[j];
+        cellList[i] = head[thisCellIndex];
 
         // Put the last atom in the head of its cell
-        head[j] = i;
+        head[thisCellIndex] = i;
     }
 
     long int s;

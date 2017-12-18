@@ -79,82 +79,93 @@ int main(int argc, char* argv[]) {
     TrajectoryWriter writer(outputPrefix, outputFormat, sysEnergy.getBox(), n, dt, outputPeriod, typeName);
     writer.newFile(pos, type, 0.0, n);
 
-    // Figure out min/maxes of simulation space
-
-    // printf("Simulation Space MIN - x: %f, y: %f, z: %f\n", minX, minY, minZ);
-    // printf("Simulation Space MAX - x: %f, y: %f, z: %f\n", maxX, maxY, maxZ);
-
-    // Divide up the space and create the cell lists
-
-    // printf("Simulation Size - x: %d, y: %d, z: %d\n", sysEnergy.getNx(), sysEnergy.getNy(), sysEnergy.getNz());
-
     double cellSize = MAX_INTERACTION_RADIUS + RADIUS_BUFFER_PER_STEP * (VERLET_REBUILD_INT - 1);
 
-    int numCellsX = ceil(sysEnergy.getNx() / cellSize);
-    int numCellsY = ceil(sysEnergy.getNy() / cellSize);
-    int numCellsZ = ceil(sysEnergy.getNz() / cellSize);
+    Vector3 simulationSize = sysEnergy.getDestination();
+
+    double simSizeX = simulationSize.x * 2;
+    double simSizeY = simulationSize.y * 2;
+    double simSizeZ = simulationSize.z * 2;
+
+    printf("Simulation size: %f, %f, %f", simSizeX, simSizeY, simSizeZ);
+
+    int numCellsX = ceil(simSizeX / cellSize);
+    int numCellsY = ceil(simSizeY / cellSize);
+    int numCellsZ = ceil(simSizeZ / cellSize);
+
+    int numCells = numCellsX * numCellsY * numCellsZ;
 
     // each cell will be cellSize big, except for the last cell
 
-    // printf("Cell Size: %f, NumCellsX: %d, NumCellsY: %d, NumCellsZ: %d\n", cellSize, numCellsX, numCellsY, numCellsZ);
-
-    // Build the Linked List:
-    int cellList[n]; // cellList[i] holds the atom index to which the ith atom points.
-    int numCells = numCellsX * numCellsY * numCellsZ;
-    int head[numCells]; // head[c] holds the index of the first atom in the c-th cell, or head[c] = −1 if there is no atom in the cell.
-    int thisCellIndex;
-
-    // Set all heads to -1
-    for (int i = 0; i < (numCellsX * numCellsY * numCellsZ); i++) {
-        head[i] = -1;
-    }
-
-    // Put atoms in linked list
-    for (int i = 0; i < n; i++) {
-        // Compute the scalar cell index
-        thisCellIndex = findCellIndex(pos[i].x, pos[i].y, pos[i].z,numCellsX, numCellsY, numCellsZ, sysEnergy.getNx(), sysEnergy.getNy(), sysEnergy.getNz());
-
-        //printf("x: %f, y: %f, z: %f, thisCellIndex: %d\n", pos[i].x + (sysEnergy.getNx()/2), pos[i].y + (sysEnergy.getNy()/2), pos[i].z + (sysEnergy.getNz()/2), thisCellIndex);
-
-        // Link to any other atoms in that cell
-        cellList[i] = head[thisCellIndex];
-
-        // Put the last atom in the head of its cell
-        head[thisCellIndex] = i;
-    }
+    printf("Cell Size: %f, NumCellsX: %d, NumCellsY: %d, NumCellsZ: %d\n", cellSize, numCellsX, numCellsY, numCellsZ);
 
     long int s;
 
     int dx, dy, dz, x, y, z, currentNeighborIndex, currentAtomInMyCell, currentAtomInNeigborCell;
+    int cellList[n]; // cellList[i] holds the atom index to which the ith atom points.
+    int head[numCells]; // head[c] holds the index of the first atom in the c-th cell, or head[c] = −1 if there is no atom in the cell.
+    int thisCellIndex;
+
     for (s = 1; s <= steps; s++) {
+
+        // During each timestep rebuild the Linked List:
+        // Set all heads to -1
+        for (int i = 0; i < numCells; i++) {
+            head[i] = -1;
+        }
+
+        thisCellIndex = 0;
+        // Put atoms in linked list
+        for (int i = 0; i < n; i++) {
+            printf("%d: ", i);
+            // Compute the scalar cell index
+            thisCellIndex = findCellIndex(pos[i].x, pos[i].y, pos[i].z, numCellsX, numCellsY, numCellsZ, simSizeX, simSizeY, simSizeZ);
+
+            printf("x: %f, y: %f, z: %f, thisCellIndex: %d\n", pos[i].x + (simSizeX/2), pos[i].y + (simSizeY/2), pos[i].z + (simSizeZ/2), thisCellIndex);
+
+            // Link to any other atoms in that cell
+            cellList[i] = head[thisCellIndex];
+
+            // Put the last atom in the head of its cell
+            head[thisCellIndex] = i;
+        }
+
+
         // Get the force of the environment.
         for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
         for (int i = 0; i < numCells; i++) { // For each cell
 
             // If this cell contains no atoms, skip
             if (head[i] == -1) {
+                printf("Skipping cell %d as it is empty\n", i);
                 continue;
             }
 
+            printf("\n\nCurrent cell: %d\n", i);
+
             // Get the neighbors for this calculation
-            for (int n = 0; n < 14; n++) {
-
-                dx = n/9 % 3 - 1;
-                dy = n/3 % 3 - 1;
-                dz = n % 3 - 1;
-
-                //printf("%d, %d, %d\n", dx, dy, dz);
+            for (int n1 = 0; n1 < 14; n1++) {
 
                 x = i % numCellsX;
                 y = (((i - x)) / numCellsX) % numCellsY;
                 z = (i - y * numCellsX - x) / (numCellsX * numCellsY);
 
+                // if (n == 0) printf(" (%d, %d, %d)\n", x, y, z);
+
+                dx = n1/9 % 3 - 1;
+                dy = n1/3 % 3 - 1;
+                dz = n1 % 3 - 1;
+
+                printf("%d, %d, %d\n", dx, dy, dz);
+
                 currentNeighborIndex = ((dx + x + numCellsX) % numCellsX) + ((dy + y + numCellsY) % numCellsY) * numCellsX + ((dz + z + numCellsZ) % numCellsZ) * numCellsX * numCellsY;
+
+                printf("Calculating interaction with neigbor cell: %d\n", currentNeighborIndex);
 
                 // If there are no atoms in the current neighbor cell, skip
                 if (head[currentNeighborIndex] == -1) {
+                    printf("Skipping cell %d as it is empty\n", currentNeighborIndex);
                     continue;
                 }
 
@@ -163,6 +174,7 @@ int main(int argc, char* argv[]) {
 
                 while (cellList[currentAtomInMyCell] != -1) { // While there are still atoms in this cell
                     while (cellList[currentAtomInNeigborCell] != -1) { // While there are still atoms in the neighbor cell
+                        printf("Calculating interaction between atom %d and %d\n", currentAtomInMyCell, currentAtomInNeigborCell);
                         // Do stuff
                         Vector3 d = sysEnergy.wrapDiff(pos[currentAtomInMyCell] - pos[currentAtomInNeigborCell]);
                         double dist = d.length();
@@ -170,6 +182,7 @@ int main(int argc, char* argv[]) {
                         Vector3 f = fMag/dist*d;
                         force[currentAtomInMyCell] += f;
                         force[currentAtomInNeigborCell] -= f;
+
 
                         // Go to next atom in neighbor cell
                         currentAtomInNeigborCell = cellList[currentAtomInNeigborCell];
@@ -179,7 +192,6 @@ int main(int argc, char* argv[]) {
                 }
             }
         }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         // Update position.
         for (int i = 0; i < n; i++) {

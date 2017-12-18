@@ -87,11 +87,11 @@ int main(int argc, char* argv[]) {
     double simSizeY = simulationSize.y * 2;
     double simSizeZ = simulationSize.z * 2;
 
-    printf("Simulation size: %f, %f, %f", simSizeX, simSizeY, simSizeZ);
+    printf("Simulation size: %d, %d, %d", sysEnergy.getNx(), sysEnergy.getNy(), sysEnergy.getNz());
 
-    int numCellsX = ceil(simSizeX / cellSize);
-    int numCellsY = ceil(simSizeY / cellSize);
-    int numCellsZ = ceil(simSizeZ / cellSize);
+    int numCellsX = ceil(sysEnergy.getNx() / cellSize);
+    int numCellsY = ceil(sysEnergy.getNy() / cellSize);
+    int numCellsZ = ceil(sysEnergy.getNz() / cellSize);
 
     int numCells = numCellsX * numCellsY * numCellsZ;
 
@@ -120,9 +120,9 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < n; i++) {
             // printf("%d: ", i);
             // Compute the scalar cell index
-            thisCellIndex = findCellIndex(pos[i].x, pos[i].y, pos[i].z, numCellsX, numCellsY, numCellsZ, simSizeX, simSizeY, simSizeZ);
+            thisCellIndex = findCellIndex(pos[i].x, pos[i].y, pos[i].z, numCellsX, numCellsY, numCellsZ, sysEnergy.getNx(), sysEnergy.getNy(), sysEnergy.getNz());
 
-            // printf("x: %f, y: %f, z: %f, thisCellIndex: %d\n", pos[i].x + (simSizeX/2), pos[i].y + (simSizeY/2), pos[i].z + (simSizeZ/2), thisCellIndex);
+            // printf("x: %f, y: %f, z: %f, thisCellIndex: %d\n", pos[i].x + (sysEnergy.getNx()/2), pos[i].y + (sysEnergy.getNy()/2), pos[i].z + (sysEnergy.getNz()/2), thisCellIndex);
 
             // Link to any other atoms in that cell
             cellList[i] = head[thisCellIndex];

@@ -115,14 +115,14 @@ int main(int argc, char* argv[]) {
         }
 
         thisCellIndex = 0;
-        printf("Binning particles into cells: \n");
+        // printf("Binning particles into cells: \n");
         // Put atoms in linked list
         for (int i = 0; i < n; i++) {
-            printf("%d: ", i);
+            // printf("%d: ", i);
             // Compute the scalar cell index
             thisCellIndex = findCellIndex(pos[i].x, pos[i].y, pos[i].z, numCellsX, numCellsY, numCellsZ, simSizeX, simSizeY, simSizeZ);
 
-            printf("x: %f, y: %f, z: %f, thisCellIndex: %d\n", pos[i].x + (simSizeX/2), pos[i].y + (simSizeY/2), pos[i].z + (simSizeZ/2), thisCellIndex);
+            // printf("x: %f, y: %f, z: %f, thisCellIndex: %d\n", pos[i].x + (simSizeX/2), pos[i].y + (simSizeY/2), pos[i].z + (simSizeZ/2), thisCellIndex);
 
             // Link to any other atoms in that cell
             cellList[i] = head[thisCellIndex];
@@ -139,11 +139,11 @@ int main(int argc, char* argv[]) {
 
             // If this cell contains no atoms, skip
             if (head[i] == -1) {
-                printf("Skipping cell %d as it is empty\n", i);
+                // printf("Skipping cell %d as it is empty\n", i);
                 continue;
             }
 
-            printf("\n\nCurrent cell: %d\n", i);
+            // printf("\n\nCurrent cell: %d\n", i);
 
             // Get the neighbors for this calculation
             for (int n1 = 0; n1 < 14; n1++) {
@@ -158,15 +158,15 @@ int main(int argc, char* argv[]) {
                 dy = n1/3 % 3 - 1;
                 dz = n1 % 3 - 1;
 
-                printf("%d, %d, %d\n", dx, dy, dz);
+                // printf("%d, %d, %d\n", dx, dy, dz);
 
                 currentNeighborIndex = ((dx + x + numCellsX) % numCellsX) + ((dy + y + numCellsY) % numCellsY) * numCellsX + ((dz + z + numCellsZ) % numCellsZ) * numCellsX * numCellsY;
 
-                printf("Calculating interaction with neighbor cell: %d\n", currentNeighborIndex);
+                // printf("Calculating interaction with neighbor cell: %d\n", currentNeighborIndex);
 
                 // If there are no atoms in the current neighbor cell, skip
                 if (head[currentNeighborIndex] == -1) {
-                    printf("Skipping cell %d as it is empty\n", currentNeighborIndex);
+                    // printf("Skipping cell %d as it is empty\n", currentNeighborIndex);
                     continue;
                 }
 
@@ -178,21 +178,22 @@ int main(int argc, char* argv[]) {
 
                         // Don't interact particle with itself
                         if (cellList[currentAtomInMyCell] == cellList[currentAtomInNeighborCell]) {
+                            currentAtomInNeighborCell = cellList[currentAtomInNeighborCell];
                             continue;
                         }
-                        printf("Calculating interaction between atom %d and %d\n", currentAtomInMyCell, currentAtomInNeighborCell);
+                        // printf("Calculating interaction between atom %d and %d\n", currentAtomInMyCell, currentAtomInNeighborCell);
                         // Do stuff
                         Vector3 d = sysEnergy.wrapDiff(pos[currentAtomInMyCell] - pos[currentAtomInNeighborCell]);
-                        printf("d: (%f, %f, %f)\n", d.x, d.y, d.z);
+                        // printf("d: (%f, %f, %f)\n", d.x, d.y, d.z);
                         double dist = d.length();
-                        printf("dist: %f\n", dist);
+                        // printf("dist: %f\n", dist);
                         double fMag = -interactEnergy.computeGrad(dist);
-                        printf("fMag: %f\n", fMag);
+                        // printf("fMag: %f\n", fMag);
                         Vector3 f = fMag/dist*d;
-                        printf("f: (%f, %f, %f)\n", f.x, f.y, f.z);
-                        printf("force[%i] (me) before: (%f, %f, %f), after: (%f, %f, %f)\n",currentAtomInMyCell, force[currentAtomInMyCell].x, force[currentAtomInMyCell].y, force[currentAtomInMyCell].z, force[currentAtomInMyCell].x + f.x, force[currentAtomInMyCell].y + f.y, force[currentAtomInMyCell].z + f.z);
+                        // printf("f: (%f, %f, %f)\n", f.x, f.y, f.z);
+                        // printf("force[%i] (me) before: (%f, %f, %f), after: (%f, %f, %f)\n",currentAtomInMyCell, force[currentAtomInMyCell].x, force[currentAtomInMyCell].y, force[currentAtomInMyCell].z, force[currentAtomInMyCell].x + f.x, force[currentAtomInMyCell].y + f.y, force[currentAtomInMyCell].z + f.z);
                         force[currentAtomInMyCell] += f;
-                        printf("force[%i] (neigbor) before: (%f, %f, %f), after: (%f, %f, %f)\n",currentAtomInNeighborCell, force[currentAtomInNeighborCell].x, force[currentAtomInNeighborCell].y, force[currentAtomInNeighborCell].z, force[currentAtomInNeighborCell].x - f.x, force[currentAtomInNeighborCell].y - f.y, force[currentAtomInNeighborCell].z - f.z);
+                        // printf("force[%i] (neigbor) before: (%f, %f, %f), after: (%f, %f, %f)\n",currentAtomInNeighborCell, force[currentAtomInNeighborCell].x, force[currentAtomInNeighborCell].y, force[currentAtomInNeighborCell].z, force[currentAtomInNeighborCell].x - f.x, force[currentAtomInNeighborCell].y - f.y, force[currentAtomInNeighborCell].z - f.z);
                         force[currentAtomInNeighborCell] -= f;
 
 

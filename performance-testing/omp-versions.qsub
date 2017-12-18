@@ -2,7 +2,7 @@
 
 #$ -l h_rt=2:00:00
 #$ -t 1:6:1
-#$ -q \*@@moles
+#$ -q \*@@dwarves
 #$ -cwd
 #$ -j y
 #$ -m abe

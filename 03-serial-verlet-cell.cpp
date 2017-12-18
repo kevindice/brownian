@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     double simSizeY = simulationSize.y * 2;
     double simSizeZ = simulationSize.z * 2;
 
-    printf("Simulation size: %f, %f, %f", simSizeX, simSizeY, simSizeZ);
+    // printf("Simulation size: %f, %f, %f\n", simSizeX, simSizeY, simSizeZ);
 
     int numCellsX = ceil(simSizeX / cellSize);
     int numCellsY = ceil(simSizeY / cellSize);
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
 
     // each cell will be cellSize big, except for the last cell
 
-    printf("Cell Size: %f, NumCellsX: %d, NumCellsY: %d, NumCellsZ: %d\n", cellSize, numCellsX, numCellsY, numCellsZ);
+    // printf("Cell Size: %f, NumCellsX: %d, NumCellsY: %d, NumCellsZ: %d\n", cellSize, numCellsX, numCellsY, numCellsZ);
 
     long int s;
 

@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
 
     long int s;
 
-    int dx, dy, dz, x, y, z, currentNeighborIndex, currentAtomInMyCell, currentAtomInNeigborCell;
+    int dx, dy, dz, x, y, z, currentNeighborIndex, currentAtomInMyCell, currentAtomInNeighborCell;
     int cellList[n]; // cellList[i] holds the atom index to which the ith atom points.
     int head[numCells]; // head[c] holds the index of the first atom in the c-th cell, or head[c] = −1 if there is no atom in the cell.
     int thisCellIndex;
@@ -115,6 +115,7 @@ int main(int argc, char* argv[]) {
         }
 
         thisCellIndex = 0;
+        printf("Binning particles into cells: \n");
         // Put atoms in linked list
         for (int i = 0; i < n; i++) {
             printf("%d: ", i);
@@ -161,7 +162,7 @@ int main(int argc, char* argv[]) {
 
                 currentNeighborIndex = ((dx + x + numCellsX) % numCellsX) + ((dy + y + numCellsY) % numCellsY) * numCellsX + ((dz + z + numCellsZ) % numCellsZ) * numCellsX * numCellsY;
 
-                printf("Calculating interaction with neigbor cell: %d\n", currentNeighborIndex);
+                printf("Calculating interaction with neighbor cell: %d\n", currentNeighborIndex);
 
                 // If there are no atoms in the current neighbor cell, skip
                 if (head[currentNeighborIndex] == -1) {
@@ -170,22 +171,33 @@ int main(int argc, char* argv[]) {
                 }
 
                 currentAtomInMyCell = head[i];
-                currentAtomInNeigborCell = head[currentNeighborIndex];
+                currentAtomInNeighborCell = head[currentNeighborIndex];
 
                 while (cellList[currentAtomInMyCell] != -1) { // While there are still atoms in this cell
-                    while (cellList[currentAtomInNeigborCell] != -1) { // While there are still atoms in the neighbor cell
-                        printf("Calculating interaction between atom %d and %d\n", currentAtomInMyCell, currentAtomInNeigborCell);
+                    while (cellList[currentAtomInNeighborCell] != -1) { // While there are still atoms in the neighbor cell
+
+                        // Don't interact particle with itself
+                        if (cellList[currentAtomInMyCell] == cellList[currentAtomInNeighborCell]) {
+                            continue;
+                        }
+                        printf("Calculating interaction between atom %d and %d\n", currentAtomInMyCell, currentAtomInNeighborCell);
                         // Do stuff
-                        Vector3 d = sysEnergy.wrapDiff(pos[currentAtomInMyCell] - pos[currentAtomInNeigborCell]);
+                        Vector3 d = sysEnergy.wrapDiff(pos[currentAtomInMyCell] - pos[currentAtomInNeighborCell]);
+                        printf("d: (%f, %f, %f)\n", d.x, d.y, d.z);
                         double dist = d.length();
+                        printf("dist: %f\n", dist);
                         double fMag = -interactEnergy.computeGrad(dist);
+                        printf("fMag: %f\n", fMag);
                         Vector3 f = fMag/dist*d;
+                        printf("f: (%f, %f, %f)\n", f.x, f.y, f.z);
+                        printf("force[%i] (me) before: (%f, %f, %f), after: (%f, %f, %f)\n",currentAtomInMyCell, force[currentAtomInMyCell].x, force[currentAtomInMyCell].y, force[currentAtomInMyCell].z, force[currentAtomInMyCell].x + f.x, force[currentAtomInMyCell].y + f.y, force[currentAtomInMyCell].z + f.z);
                         force[currentAtomInMyCell] += f;
-                        force[currentAtomInNeigborCell] -= f;
+                        printf("force[%i] (neigbor) before: (%f, %f, %f), after: (%f, %f, %f)\n",currentAtomInNeighborCell, force[currentAtomInNeighborCell].x, force[currentAtomInNeighborCell].y, force[currentAtomInNeighborCell].z, force[currentAtomInNeighborCell].x - f.x, force[currentAtomInNeighborCell].y - f.y, force[currentAtomInNeighborCell].z - f.z);
+                        force[currentAtomInNeighborCell] -= f;
 
 
                         // Go to next atom in neighbor cell
-                        currentAtomInNeigborCell = cellList[currentAtomInNeigborCell];
+                        currentAtomInNeighborCell = cellList[currentAtomInNeighborCell];
                     }
                     // Go to next atom in my cell
                     currentAtomInMyCell = cellList[currentAtomInMyCell];

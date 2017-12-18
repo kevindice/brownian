@@ -22,12 +22,10 @@ protected:
   double r0, r1;
   double e0;
 public:
-  
-  __device__ __host__
+
   void read(const String& fileName, bool periodic0) {
     read(fileName.cs(), periodic0);
   }
-  __device__ __host__
   void read(const char* fileName, bool periodic0) {
     FILE* inp = fopen(fileName, "r");
     if (inp == NULL) {
@@ -181,7 +179,7 @@ public:
 
   virtual double getGrad(int j) const = 0;
   virtual double computeVal(double d) const = 0;
-  __device__ __host__  virtual double computeGrad(double d) const = 0;
+  virtual double computeGrad(double d) const = 0;
 
   virtual bool computeValGrad(double d, double& val, double& grad) const = 0;
 
@@ -338,8 +336,7 @@ public:
     int r = i % n;
     return r<0 ? r+n : r;
   }
-  
-  __device__ __host__ 
+
   double wrap(double x) const {
     return wrapReal(x-r0, dl) + r0;
   }
@@ -429,17 +426,15 @@ protected:
   // Integral from the home position rj to x0.
   // Validation done in integrate(x0,x1).
   virtual double integrate(int j, double x) const = 0;
-  
-  __device__ __host__
+
   virtual void init(const double* dist, const double* pot, int n0) = 0;
   
 
   // Calculate or recalculate the polynomial coefficients
   // for the cubic spline interpolation.
   // We can do this for a range of nodes rather than all.
-  __device__ __host__
   virtual void interpolation() = 0;
-  __device__ __host__
+  
   virtual void interpolation(int j) = 0;
 
   IndexList neighbors(int j) const {
@@ -473,7 +468,7 @@ protected:
 
     return ret;
   }
-  __device__ __host__
+
   virtual void makeInterpolant(int j) = 0;
 };
 #endif

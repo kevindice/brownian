@@ -26,23 +26,20 @@ using namespace std;
 // A classic growable string class.
 class String {
 public:
-  __device__ __host__
   String() {
     cap = 16;
     c = new char[cap];
     c[0] = '\0';
     len = 1;
   }
-  
-  __device__ __host__
+
   String(const char* s) {
     len = strlen(s) + 1;
     cap = len;
     c = new char[cap];
     for (int i = 0; i < len; i++) c[i] = s[i];
   }
-  
-  __device__ __host__
+
   String(const String& s) {
     len = s.len;
     cap = s.len;
@@ -156,8 +153,7 @@ public:
 
     return count;
   }
-  
-  __device__ __host__
+
   int tokenize(String* tokenList) const {
     const int len1 = len - 1;
     const int n = tokenCount();
@@ -254,8 +250,7 @@ public:
     if (onToken) tokenList[n-1] = range(tokenStart,-1);
     return n;
   }
-  
-  __device__ __host__
+
   ~String() {
     delete[] c;
   }
@@ -390,7 +385,6 @@ private:
 //
 class Vector3 {
 public:
-  
   __device__ __host__
   Vector3() {}
   __device__ __host__
@@ -405,7 +399,6 @@ public:
     y = y0;
     z = z0;
   }
-  
   __device__ __host__
   Vector3(const double* d) {
     x = d[0];
@@ -457,7 +450,8 @@ public:
     z /= s;
     return *this;
   }
-
+  
+  __device__ __host__
   Vector3 operator-() const {
     Vector3 v;
     v.x = -x;
@@ -539,6 +533,7 @@ Vector3 operator/(Vector3 v, double s) {
 //
 class Matrix3 {
 public:
+  __device__ __host__
   Matrix3() {}
 
   Matrix3(double s) {
@@ -633,7 +628,8 @@ public:
     ret.ezz = ezx*m.exz + ezy*m.eyz + ezz*m.ezz;
     return ret;
   }
-
+  
+  __device__ __host__
   const Matrix3 operator-() const {
     Matrix3 m;
     m.exx = -exx;
@@ -664,6 +660,7 @@ public:
     return m;
   }
 
+  __device__ __host__
   Matrix3 inverse() const {
     Matrix3 m;
     double det = exx*(eyy*ezz-eyz*ezy) - exy*(eyx*ezz-eyz*ezx) + exz*(eyx*ezy-eyy*ezx);
@@ -684,7 +681,7 @@ public:
   double det() const {
     return exx*(eyy*ezz-eyz*ezy) - exy*(eyx*ezz-eyz*ezx) + exz*(eyx*ezy-eyy*ezx);
   }
-
+__device__ __host__
  Vector3 transform(const Vector3& v) const {
    Vector3 w;
    w.x = exx*v.x + exy*v.y + exz*v.z;
@@ -693,7 +690,7 @@ public:
    return w;
   }
 
-  
+  __device__ __host__
   Matrix3 transform(const Matrix3& m) const {
     Matrix3 ret;
     ret.exx = exx*m.exx + exy*m.eyx + exz*m.ezx;

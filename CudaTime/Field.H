@@ -144,12 +144,10 @@ public:
   }
 
   // Static wrapping of floating point values, whether the field is periodic or not.
-  __device__ __host__ 
   inline static double wrapReal(double x, double l) {
     int image = int(floor(x/l));
     return x - image*l;
   }
-  __device__ __host__ 
   inline static double wrapReal(double x, double x0, double x1) {
     double l = x1-x0;
     int image = int(floor((x-x0)/l));
@@ -177,7 +175,6 @@ public:
   // Set the value of a node. Is virtual so that interpolants can be updated.
   virtual bool set(int j, double v) = 0;
   // Read the field from its file.
-  __device__ __host__
   virtual void read(const String& fileName, bool periodic0) = 0; 
   // Write the field to a file.
   virtual bool write(const String& fileName) const = 0; 

@@ -16,19 +16,17 @@
 #include "useful.H"
 #include "Piecewise1d.H"
 
-
 class PiecewiseCubic : public Piecewise1d {
 private:
   double* v1;
   double* v2;
   double* v3;
 public:
-  __device__ __host__
   PiecewiseCubic(const char* fileName, bool periodic0) {
     v0 = NULL;
     read(fileName, periodic0);
   }
-  
+
   PiecewiseCubic(bool periodic0, const String& fileSegment) {
     v0 = NULL;
     import(fileSegment,periodic0);
@@ -161,7 +159,6 @@ public:
     r1 = tab.r1;
     e0 = tab.e0;
     periodic = tab.periodic;
-    
     return (*this);
   }
 
@@ -194,8 +191,12 @@ public:
     if (j == n-1) return (v0[n-1]-v0[n-2])/dr;
     return v1[j]/dr;
   }
-
- __device__ __host__ 
+  
+ double* getV1() {return v1;}
+ double* getV2() {return v2;}
+ double* getV3() {return v3;}
+ int getN() {return n;}
+ 
  double computeGrad(double d) const {
     int home;
 
@@ -216,8 +217,7 @@ public:
     // Interpolate.
     return (3.0*v3[home]*w2 + 2.0*v2[home]*w + v1[home])/dr;
   }
-  
-  __device__ __host__ 
+
  double computeGradGrad(double d) const {
     int home;
 
@@ -338,7 +338,6 @@ private:
     return dr*(0.25*v3[j]*w2*w2 + v2[j]/3.0*w2*w + 0.5*v1[j]*w2 + v0[j]*w);
   }
 
-  __device__ __host__
   void init(const double* dist, const double* pot, int n0) {
     n = abs(n0);
     dr = abs(dist[1]-dist[0]);
@@ -369,12 +368,11 @@ private:
   // Calculate or recalculate the polynomial coefficients
   // for the cubic spline interpolation.
   // We can do this for a range of nodes rather than all.
-  __device__ __host__
   void interpolation() {
     for (int j = 0; j < n; j++) makeInterpolant(j);
     e0 = v3[n-1] + v2[n-1] + v1[n-1] + v0[n-1];
   }
-  __device__ __host__
+  
   void interpolation(int j) { 
     // The interpolant is calculated from i-1, i, i+1, and i+2.
     // So from j-2 to j+1 are affected by changing j.
@@ -389,7 +387,7 @@ private:
     }
     e0 = v3[n-1] + v2[n-1] + v1[n-1] + v0[n-1];
   }
-  __device__ __host__
+
   void makeInterpolant(int j) {
     // We assume that j is a valid node.
     int i0 = j - 1;

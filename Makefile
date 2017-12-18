@@ -25,8 +25,8 @@ verlet-interval-omp: 02-omp-verlet-interval.cpp
 verlet-interval-experiment: 02a-serial-verlet-interval-experiment.cpp
 	g++ $(CFLAGS) 02a-serial-verlet-interval-experiment.cpp -o bin/02a-serial-verlet-interval-experiment $(MATHFLAGS)
 
-cell: 03-serial-verlet-cell.cpp
-	g++ $(CFLAGS) 03-serial-verlet-cell.cpp -o bin/03-serial-verlet-cell $(MATHFLAGS)
+cell: 03-serial-cell.cpp
+	g++ $(CFLAGS) 03-serial-cell.cpp -o bin/03-serial-verlet-cell $(MATHFLAGS)
 
 clean:
 	rm -f bin/*

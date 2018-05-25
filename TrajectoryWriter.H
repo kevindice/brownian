@@ -65,11 +65,9 @@ public:
     switch(formatCode) {
     case formatTraj:
       return String("traj");
-      break;
     case formatPdb:
     default:
       return String("pdb");
-      break;
     }
   }
 

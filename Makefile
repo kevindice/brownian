@@ -5,7 +5,7 @@ debug:
 	g++ -ggdb -Wall $(ROOT).C -o $(ROOT) -lm -lgsl -lgslcblas
 
 gnu:
-	g++ -O3 -Wall -Wno-strict-overflow -Wno-unused-result -march=native -mfpmath=sse $(ROOT).C -o $(ROOT) -lm -I$(HOME)/gsl/include/ -L$(HOME)/gsl/lib -lgsl -lgslcblas
+	g++ -O2 -Wall -Wno-strict-overflow -Wno-unused-result -march=native -mfpmath=sse $(ROOT).C -o $(ROOT) -lm -I$(HOME)/gsl/include/ -L$(HOME)/gsl/lib -lgsl -lgslcblas
 
 clean:
 	rm -f $(ROOT) $(ROOT)

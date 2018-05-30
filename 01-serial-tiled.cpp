@@ -8,7 +8,6 @@
 #include "RandomGsl.H"
 #include "BaseGrid.H"
 #include "TrajectoryWriter.H"
-#include <omp.h>
 
 int main(int argc, char* argv[]) {
   if (argc != 12) {
@@ -27,16 +26,13 @@ int main(int argc, char* argv[]) {
   const char* outputFormat = argv[9];
   int outputPeriod = atoi(argv[10]);
   const char* outputPrefix = argv[argc-1];
+  const int stripSize = 16;
 
   printf("System 3D energy map: `%s' %d nodes\n", argv[1], sysEnergy.length());
   printf("System 3D diffusivity map: `%s' %d nodes\n", argv[2], sysDiffuse.length());
   printf("Interparticle radial interaction energy: `%s' %d nodes\n", argv[3], interactEnergy.length());
   printf("Initial coordinates: `%s'\n", argv[4]);
   printf("dt %g kT %g steps %ld outputPeriod %d\n", dt, kT, steps, outputPeriod);
-
-  omp_set_dynamic(0);
-  omp_set_num_threads(6);
-  int num_threads = omp_get_num_threads();
 
   double beta = 1.0/kT;
   //long seed = (unsigned int)time((time_t *)NULL) + seed0*seed0*seed0;
@@ -47,7 +43,6 @@ int main(int argc, char* argv[]) {
   const int n = initCoord.length();
   Vector3* pos = new Vector3[n];
   Vector3* force = new Vector3[n];
-  Vector3* randoms = new Vector3[n];
   int* type = new int[n];
   // Initialize positions.
   for (int i = 0; i < n; i++) {
@@ -66,38 +61,31 @@ int main(int argc, char* argv[]) {
   long int s;
   for (s = 1; s <= steps; s++) {
     // Get the force of the environment.
-    #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
 
     // Particle-particle interactions.
-    #pragma omp parallel for schedule(dynamic)
-    for (int i = 0; i < n; i++) {
-      for (int j = i+1; j < n; j++) {
-        Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
-        double dist = d.length();
-        double fMag = -interactEnergy.computeGrad(dist);
-        Vector3 f = fMag/dist*d;
-
-          force[i] += f;
-          force[j] -= f;
-      }
-    }
-
-    #pragma omp single
-    {
-      for (int i = 0; i < n; i++){
-        randoms[i] = rando.gaussian_vector();
+    for (int iTile = 0; iTile < n; iTile += stripSize) {
+      for (int jTile = iTile + 1; jTile < n; jTile += stripSize) {
+        for (int i = iTile; i < min(n, iTile + stripSize); i++) {
+          for (int j = max(jTile, i + 1); j < min(n, jTile + stripSize); j++) {
+            Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
+            double dist = d.length();
+            double fMag = -interactEnergy.computeGrad(dist);
+            Vector3 f = fMag/dist*d;
+            force[i] += f;
+            force[j] -= f;
+          }
+        }
       }
     }
 
     // Update position.
-    #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < n; i++) {
       double diffuse = sysDiffuse.interpolatePotential(pos[i]);
       Vector3 diffGrad = -sysDiffuse.interpolateForce(pos[i]);
 
       // Get the random kick.
-      Vector3 dr = randoms[i];
+      Vector3 dr = rando.gaussian_vector();
 
       // Perform the Brownian Dynamics step.
       Vector3 r = pos[i] + beta*force[i]*diffuse*dt + diffGrad*dt + sqrt(2*diffuse*dt)*dr;
@@ -114,7 +102,6 @@ int main(int argc, char* argv[]) {
 
   delete[] pos;
   delete[] force;
-  delete[] randoms;
   delete[] type;
   delete[] typeName;
 

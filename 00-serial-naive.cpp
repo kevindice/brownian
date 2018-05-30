@@ -65,12 +65,12 @@ int main(int argc, char* argv[]) {
     // Particle-particle interactions.
     for (int i = 0; i < n; i++) {
       for (int j = i+1; j < n; j++) {
-	Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
-	double dist = d.length();
-	double fMag = -interactEnergy.computeGrad(dist);
-	Vector3 f = fMag/dist*d;
-	force[i] += f;
-	force[j] -= f;
+        Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
+        double dist = d.length();
+        double fMag = -interactEnergy.computeGrad(dist);
+        Vector3 f = fMag/dist*d;
+        force[i] += f;
+        force[j] -= f;
       }
     }
 

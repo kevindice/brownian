@@ -70,6 +70,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
 
     // Particle-particle interactions.
+    #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < n; i++) {
       for (int j = i+1; j < n; j++) {
         Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);

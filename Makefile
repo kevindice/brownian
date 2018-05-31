@@ -1,7 +1,8 @@
 CFLAGS = -O2 -Wall -Wno-strict-overflow -Wno-unused-result -march=native -mfpmath=sse
+CUDAFLAGS = -O2
 MATHFLAGS = -lm -I$(HOME)/gsl/include/ -L$(HOME)/gsl/lib -lgsl -lgslcblas
 
-default: naive naive-omp tiled tiled-omp pure pure-omp pure-tiled pure-tiled-omp verlet verlet-omp verlet-interval verlet-interval-omp cell
+default: naive naive-omp tiled tiled-omp pure pure-omp pure-tiled pure-tiled-omp cuda verlet verlet-omp verlet-interval verlet-interval-omp cell
 experiment: verlet-interval-experiment
 
 naive: 00-serial-naive.cpp
@@ -27,6 +28,10 @@ pure-tiled: 03-serial-pure-tiled.cpp
 
 pure-tiled-omp: 03-omp-pure-tiled.cpp
 	g++ $(CFLAGS) 03-omp-pure-tiled.cpp -fopenmp -o bin/03-omp-pure-tiled $(MATHFLAGS)
+
+cuda: 04-serial-cuda.cu
+	nvcc $(CUDAFLAGS) 04-serial-cuda.cu -o bin/04-serial-cuda $(MATHFLAGS)
+
 
 verlet: 01-serial-verlet.cpp
 	g++ $(CFLAGS) 01-serial-verlet.cpp -o bin/01-serial-verlet $(MATHFLAGS)

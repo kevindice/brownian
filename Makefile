@@ -29,8 +29,8 @@ pure-tiled: 03-serial-pure-tiled.cpp
 pure-tiled-omp: 03-omp-pure-tiled.cpp
 	g++ $(CFLAGS) 03-omp-pure-tiled.cpp -fopenmp -o bin/03-omp-pure-tiled $(MATHFLAGS)
 
-cuda: 04-serial-cuda.cu
-	nvcc $(CUDAFLAGS) 04-serial-cuda.cu -o bin/04-serial-cuda $(MATHFLAGS)
+cuda: 04-cuda.cu
+	nvcc $(CUDAFLAGS) 04-cuda.cu -o bin/04-cuda $(MATHFLAGS)
 
 
 verlet: 01-serial-verlet.cpp

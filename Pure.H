@@ -51,4 +51,37 @@ double pureComputeGrad(double d, bool periodic, double r0, double dl, double dr,
 
 
 
+void doCompute(
+        Vector3 *force,
+        Vector3 *pos,
+        Matrix3 basis,
+        Matrix3 basisInv,
+        int nx,
+        int ny,
+        int nz,
+        bool periodic,
+        double r0,
+        double dl,
+        double dr,
+        int interact_n,
+        double *v1,
+        double *v2,
+        double *v3,
+        int n
+)
+{
+
+  for (int i = 0; i < n; i++) {
+    for (int j = i+1; j < n; j++) {
+      Vector3 d = pureWrapDiff(pos[i] - pos[j], basis, basisInv, nx, ny, nz);
+      double dist = d.length();
+      double fMag = -pureComputeGrad(dist, periodic, r0, dl, dr, interact_n, v1, v2, v3);
+      Vector3 f = fMag / dist * d;
+      force[i] += f;
+      force[j] -= f;
+    }
+  }
+
+}
+
 #endif

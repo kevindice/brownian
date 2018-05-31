@@ -10,6 +10,8 @@
 #include "TrajectoryWriter.H"
 #include "Pure.H"
 
+#define TBP 32
+
 __global__
 void hello(char *a, int *b)
 {
@@ -83,7 +85,7 @@ int main(int argc, char* argv[]) {
   // Parameters to make functions pure
 
 
-  // Cuda area
+  // Cuda hello world
   char a[16] = "Hello \0\0\0\0\0\0";
   int b[16] = {15, 10, 6, 0, -11, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   char *ad;
@@ -102,6 +104,16 @@ int main(int argc, char* argv[]) {
   cudaFree( ad );
   cudaFree( bd );
   printf("%s pizza\n", a);
+  // Cuda hello world
+
+  printf("Number of particles: %d\n", n);
+
+
+
+  // Start cuda setup
+
+  // end cuda setup
+
 
   long int s;
   for (s = 1; s <= steps; s++) {
@@ -109,20 +121,27 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
 
     // Particle-particle interactions.
-    for (int iTile = 0; iTile < n; iTile += stripSize) {
-      for (int jTile = iTile + 1; jTile < n; jTile += stripSize) {
-        for (int i = iTile; i < min(n, iTile + stripSize); i++) {
-          for (int j = max(jTile, i + 1); j < min(n, jTile + stripSize); j++) {
-            Vector3 d = pureWrapDiff(pos[i] - pos[j], basis, basisInv, nx, ny, nz);
-            double dist = d.length();
-            double fMag = -pureComputeGrad(dist, periodic, r0, dl, dr, interact_n, v1, v2, v3);
-            Vector3 f = fMag / dist * d;
-            force[i] += f;
-            force[j] -= f;
-          }
-        }
-      }
-    }
+
+
+            doCompute(
+                    force,
+                    pos,
+                    basis,
+                    basisInv,
+                    nx,
+                    ny,
+                    nz,
+                    periodic,
+                    r0,
+                    dl,
+                    dr,
+                    interact_n,
+                    v1,
+                    v2,
+                    v3,
+                    n
+            );
+
 
     // Update position.
     for (int i = 0; i < n; i++) {
@@ -144,6 +163,10 @@ int main(int argc, char* argv[]) {
       writer.append(pos, type, dt*s, n);
     }
   }
+
+  // start cuda teardown
+
+  // end cuda teardown
 
   delete[] pos;
   delete[] force;

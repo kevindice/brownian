@@ -163,6 +163,10 @@ public:
     return (*this);
   }
 
+  double* getV1() const { return v1; }
+  double* getV2() const { return v2; }
+  double* getV3() const { return v3; }
+
 
   // We can scale without recalculating the whole interpolant.
   // This should be slightly faster than reinterpolation.

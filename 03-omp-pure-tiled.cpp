@@ -8,6 +8,7 @@
 #include "RandomGsl.H"
 #include "BaseGrid.H"
 #include "TrajectoryWriter.H"
+#include "Pure.H"
 #include <omp.h>
 
 int main(int argc, char* argv[]) {
@@ -64,6 +65,23 @@ int main(int argc, char* argv[]) {
   TrajectoryWriter writer(outputPrefix, outputFormat, sysEnergy.getBox(), n, dt, outputPeriod, typeName);
   writer.newFile(pos, type, 0.0, n);
 
+  // Parameters to make functions pure
+  const Matrix3 basis = sysEnergy.getBasis();
+  const Matrix3 basisInv = sysEnergy.getInverseBasis();
+  const int nx = sysEnergy.getNx();
+  const int ny = sysEnergy.getNy();
+  const int nz = sysEnergy.getNz();
+
+  const bool periodic = interactEnergy.getPeriodic();
+  const double r0 = interactEnergy.getR0();
+  const double dl = interactEnergy.getDl();
+  const double dr = interactEnergy.getDr();
+  const int interact_n = interactEnergy.length();
+  double* v1 = interactEnergy.getV1();
+  double* v2 = interactEnergy.getV2();
+  double* v3 = interactEnergy.getV3();
+  // Parameters to make functions pure
+
   long int s;
   for (s = 1; s <= steps; s++) {
     // Get the force of the environment.
@@ -77,9 +95,9 @@ int main(int argc, char* argv[]) {
       for (int jTile = iTile + 1; jTile < n; jTile += stripSize) {
         for (int i = iTile; i < min(n, iTile + stripSize); i++) {
           for (int j = max(jTile, i + 1); j < min(n, jTile + stripSize); j++) {
-            Vector3 d = sysEnergy.wrapDiff(pos[i] - pos[j]);
+            Vector3 d = pureWrapDiff(pos[i] - pos[j], basis, basisInv, nx, ny, nz);
             double dist = d.length();
-            double fMag = -interactEnergy.computeGrad(dist);
+            double fMag = -pureComputeGrad(dist, periodic, r0, dl, dr, interact_n, v1, v2, v3);
             Vector3 f = fMag/dist*d;
             force[i] += f;
             force[j] -= f;

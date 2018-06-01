@@ -36,9 +36,9 @@ int main(int argc, char* argv[]) {
   printf("Initial coordinates: `%s'\n", argv[4]);
   printf("dt %g kT %g steps %ld outputPeriod %d\n", dt, kT, steps, outputPeriod);
 
-  omp_set_dynamic(0);
-  omp_set_num_threads(6);
-  int num_threads = omp_get_num_threads();
+  //omp_set_dynamic(0);
+  //omp_set_num_threads(6);
+  //int num_threads = omp_get_num_threads();
 
   double beta = 1.0/kT;
   //long seed = (unsigned int)time((time_t *)NULL) + seed0*seed0*seed0;

@@ -2,7 +2,7 @@ CFLAGS = -O2 -Wall -Wno-strict-overflow -Wno-unused-result -march=native -mfpmat
 CUDAFLAGS = -O2
 MATHFLAGS = -lm -I$(HOME)/gsl/include/ -L$(HOME)/gsl/lib -lgsl -lgslcblas
 
-default: naive naive-omp tiled tiled-omp pure pure-omp pure-tiled pure-tiled-omp cuda verlet verlet-omp verlet-interval cuda-complete
+default: naive naive-omp tiled tiled-omp pure pure-omp pure-tiled pure-tiled-omp cuda verlet verlet-omp verlet-interval
 
 naive: 00-serial-naive.cpp
 	g++ $(CFLAGS) 00-serial-naive.cpp -o bin/00-serial-naive $(MATHFLAGS)
@@ -42,9 +42,6 @@ verlet-interval: 06-serial-verlet-interval.cpp
 
 verlet-interval-omp: 06-omp-verlet-interval.cpp
 	g++ $(CFLAGS) 06-omp-verlet-interval.cpp -fopenmp -o bin/06-omp-verlet-interval $(MATHFLAGS)
-
-cuda-complete: 07-complete-cuda.cu
-	nvcc $(CUDAFLAGS) 07-complete-cuda.cu -o bin/07-complete-cuda $(MATHFLAGS) -Xcompiler "-fopenmp"
 
 clean:
 	rm -f bin/*

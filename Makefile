@@ -29,7 +29,7 @@ pure-tiled-omp: 03-omp-pure-tiled.cpp
 	g++ $(CFLAGS) 03-omp-pure-tiled.cpp -fopenmp -o bin/03-omp-pure-tiled $(MATHFLAGS)
 
 cuda: 04-cuda.cu
-	nvcc $(CUDAFLAGS) 04-cuda.cu -o bin/04-cuda $(MATHFLAGS)
+	nvcc $(CUDAFLAGS) 04-cuda.cu -o bin/04-cuda $(MATHFLAGS) -Xcompiler "-fopenmp"
 
 verlet: 05-serial-verlet.cpp
 	g++ $(CFLAGS) 05-serial-verlet.cpp -o bin/05-serial-verlet $(MATHFLAGS)
@@ -44,7 +44,7 @@ verlet-interval-omp: 06-omp-verlet-interval.cpp
 	g++ $(CFLAGS) 06-omp-verlet-interval.cpp -fopenmp -o bin/06-omp-verlet-interval $(MATHFLAGS)
 
 cuda-complete: 07-complete-cuda.cu
-	nvcc $(CUDAFLAGS) 07-complete-cuda.cu -o bin/07-complete-cuda $(MATHFLAGS)
+	nvcc $(CUDAFLAGS) 07-complete-cuda.cu -o bin/07-complete-cuda $(MATHFLAGS) -Xcompiler "-fopenmp"
 
 clean:
 	rm -f bin/*

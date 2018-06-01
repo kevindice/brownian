@@ -111,7 +111,8 @@ int main(int argc, char* argv[]) {
 
 
   // Start cuda setup
-
+  int numSMs;
+  cudaDeviceGetAttribute(&numSMs, cudaDevAttrMultiProcessorCount, 0);
   // end cuda setup
 
 
@@ -121,26 +122,29 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
 
     // Particle-particle interactions.
+    dim3 grid(numSMs, 32, 1);
+    dim3 block(16, 16, 1);
+    doComputeCuda<<<grid,block>>>(s, n);
+    cudaDeviceSynchronize();
 
-
-            doCompute(
-                    force,
-                    pos,
-                    basis,
-                    basisInv,
-                    nx,
-                    ny,
-                    nz,
-                    periodic,
-                    r0,
-                    dl,
-                    dr,
-                    interact_n,
-                    v1,
-                    v2,
-                    v3,
-                    n
-            );
+    doCompute(
+            force,
+            pos,
+            basis,
+            basisInv,
+            nx,
+            ny,
+            nz,
+            periodic,
+            r0,
+            dl,
+            dr,
+            interact_n,
+            v1,
+            v2,
+            v3,
+            n
+    );
 
 
     // Update position.
@@ -165,8 +169,10 @@ int main(int argc, char* argv[]) {
   }
 
   // start cuda teardown
-
+  cudaDeviceSynchronize();
   // end cuda teardown
+
+  printf("Number of SMs: %d\n", numSMs);
 
   delete[] pos;
   delete[] force;

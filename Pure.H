@@ -87,8 +87,23 @@ void doCompute(
 }
 
 
-__global__ void doComputeCuda(){
-  printf("Hello World");
+__global__ void doComputeCuda(int s, int n){
+  int x_index = blockIdx.x * blockDim.x + threadIdx.x;
+  int y_index = blockIdx.y * blockDim.y + threadIdx.y;
+
+  /* 2 Dimensional grid stride loop //
+     1D Case discussed here:  https://devblogs.nvidia.com/cuda-pro-tip-write-flexible-kernels-grid-stride-loops
+     2D example here:  https://stackoverflow.com/questions/22593936/cuda-grid-stride-loops-over-2d-arrays */
+
+  for (int i = x_index; i < n; i += blockDim.x * gridDim.x)
+  {
+    for (int j = y_index; j < n; j += blockDim.y * gridDim.y)
+    {
+      if (i != j)
+      printf("Step: %d\tblockIdx: %d,%d\ttheadIdx: %d,%d,%d\tIndex: %d, %d\n", s, blockIdx.x, blockIdx.y, threadIdx.x, threadIdx.y, threadIdx.z, j, i);
+    }
+  }
+
 }
 
 #endif

@@ -51,6 +51,8 @@ double pureComputeGrad(double d, bool periodic, double r0, double dl, double dr,
 
 
 
+#ifdef __CUDACC__
+
 void doCompute(
         Vector3 *force,
         Vector3 *pos,
@@ -83,5 +85,12 @@ void doCompute(
   }
 
 }
+
+
+__global__ void doComputeCuda(){
+  printf("Hello World");
+}
+
+#endif
 
 #endif

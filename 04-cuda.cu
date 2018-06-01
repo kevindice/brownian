@@ -85,27 +85,6 @@ int main(int argc, char* argv[]) {
   // Parameters to make functions pure
 
 
-  // Cuda hello world
-  char a[16] = "Hello \0\0\0\0\0\0";
-  int b[16] = {15, 10, 6, 0, -11, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  char *ad;
-  int *bd;
-  const int csize = 16*sizeof(char);
-  const int isize = 16*sizeof(int);
-  printf("%s cake\n", a);
-
-  cudaMalloc( (void**)&ad, csize );
-  cudaMalloc( (void**)&bd, isize );
-  cudaMemcpy( ad, a, csize, cudaMemcpyHostToDevice );
-  cudaMemcpy( bd, b, isize, cudaMemcpyHostToDevice );
-
-  hello<<<1, 16>>>(ad, bd);
-  cudaMemcpy( a, ad, csize, cudaMemcpyDeviceToHost );
-  cudaFree( ad );
-  cudaFree( bd );
-  printf("%s pizza\n", a);
-  // Cuda hello world
-
   printf("Number of particles: %d\n", n);
 
 

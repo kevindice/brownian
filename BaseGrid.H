@@ -797,7 +797,7 @@ public:
     return (1.0-w[2])*g3[0] + w[2]*g3[1];
   }
 
-
+  __HOSTDEVICE__
   double interpolateDiffX(Vector3 pos) const {
     // Find the home node.
     Vector3 l = basisInv.transform(pos - origin);
@@ -884,6 +884,7 @@ public:
     return -(a3*w[2]*w[2]*w[2] + a2*w[2]*w[2] + a1*w[2] + a0);
   }
 
+  __HOSTDEVICE__
   double interpolateDiffY(Vector3 pos) const {
     // Find the home node.
     Vector3 l = basisInv.transform(pos - origin);
@@ -970,6 +971,7 @@ public:
     return -(a3*w[2]*w[2]*w[2] + a2*w[2]*w[2] + a1*w[2] + a0);
   }
 
+  __HOSTDEVICE__
   double interpolateDiffZ(Vector3 pos) const {
     // Find the home node.
     Vector3 l = basisInv.transform(pos - origin);
@@ -1055,6 +1057,7 @@ public:
     return -(3.0*a3*w[2]*w[2] + 2.0*a2*w[2] + a1);
   }
 
+  __HOSTDEVICE__
   virtual Vector3 interpolateForce(Vector3 pos) const {
     Vector3 f;
     f.x = interpolateDiffX(pos);
@@ -1064,6 +1067,7 @@ public:
     return f1;
   }
 
+  __HOSTDEVICE__
   static double wrapFloat(double x, double l) {
     int image = int(floor(x/l));
     x -= image*l;
@@ -1089,6 +1093,7 @@ public:
     return i;
   }
 
+  __HOSTDEVICE__
   Vector3 wrap(Vector3 r) const {
     Vector3 l = basisInv.transform(r-origin);
     l.x = wrapFloat(l.x, nx);

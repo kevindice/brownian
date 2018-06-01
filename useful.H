@@ -422,6 +422,7 @@ public:
     return v;
   }
 
+  __HOSTDEVICE__
   Vector3& operator=(const Vector3& v) {
     x = v.x;
     y = v.y;
@@ -459,6 +460,7 @@ public:
     return *this;
   }
 
+  __HOSTDEVICE__
   Vector3 operator-() const {
     Vector3 v;
     v.x = -x;
@@ -467,6 +469,7 @@ public:
     return v;
   }
 
+  __HOSTDEVICE__
   Vector3 operator+(const Vector3& w ) const {
     Vector3 v;
     v.x = x + w.x;
@@ -541,6 +544,7 @@ Vector3 operator/(Vector3 v, double s) {
 //
 class Matrix3 {
 public:
+  __HOSTDEVICE__
   Matrix3() {}
 
   Matrix3(double s) {
@@ -651,6 +655,7 @@ public:
     return m;
   }
 
+  __HOSTDEVICE__
   Matrix3 transpose() const {
     Matrix3 m;
     m.exx = exx;

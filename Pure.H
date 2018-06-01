@@ -169,6 +169,84 @@ __global__ void doComputeCuda(
   }
 }
 
+
+
+
+__global__ void doAllComputeCuda(
+        Vector3 *force,
+        Vector3 *pos,
+        Matrix3 basis,
+        Matrix3 basisInv,
+        int nx,
+        int ny,
+        int nz,
+        bool periodic,
+        double r0,
+        double dl,
+        double dr,
+        int interact_n,
+        double *v1,
+        double *v2,
+        double *v3,
+        BaseGrid sysEnergy,
+        BaseGrid sysDiffuse,
+        Vector3 *randoms,
+        double beta,
+        double dt,
+        int n,
+        int step
+)
+{
+  int x_index = blockIdx.x * blockDim.x + threadIdx.x;
+  int y_index = blockIdx.y * blockDim.y + threadIdx.y;
+
+  for (int i = x_index; i < n; i += blockDim.x * gridDim.x)
+  {
+    force[i] = sysEnergy.interpolateForce(pos[i]);
+  }
+
+  /* 2 Dimensional grid stride loop //
+     1D Case discussed here:  https://devblogs.nvidia.com/cuda-pro-tip-write-flexible-kernels-grid-stride-loops
+     2D example here:  https://stackoverflow.com/questions/22593936/cuda-grid-stride-loops-over-2d-arrays */
+
+
+  for (int i = x_index; i < n; i += blockDim.x * gridDim.x)
+  {
+    for (int j = y_index; j < n; j += blockDim.y * gridDim.y)
+    {
+      if (i > j)
+      {
+        //double length = (pos[i] - pos[j]).length();
+        //printf("Step: %d\tblockIdx: %d,%d\ttheadIdx: %d,%d,%d\tIndex: %d, %d\tDistance: %f\n",
+        //    step, blockIdx.x, blockIdx.y, threadIdx.x, threadIdx.y, threadIdx.z, j, i, length );
+
+        Vector3 d = pureWrapDiff(pos[i] - pos[j], basis, basisInv, nx, ny, nz);
+        double dist = d.length();
+        double fMag = -pureComputeGrad(dist, periodic, r0, dl, dr, interact_n, v1, v2, v3);
+        Vector3 f = fMag / dist * d;
+        force[i] += f;
+        force[j] -= f;
+      }
+    }
+  }
+
+  // Update positions
+  for (int i = x_index; i < n; i += blockDim.x * gridDim.x)
+  {
+    double diffuse = sysDiffuse.interpolatePotential(pos[i]);
+      Vector3 diffGrad = -sysDiffuse.interpolateForce(pos[i]);
+
+      // Get the random kick.
+      Vector3 dr = randoms[i];
+
+      // Perform the Brownian Dynamics step.
+      Vector3 r = pos[i] + beta*force[i]*diffuse*dt + diffGrad*dt + sqrt(2*diffuse*dt)*dr;
+
+      // Wrap boundaries.
+      pos[i] = sysEnergy.wrap(r);
+  }
+}
+
 #endif
 
 #endif

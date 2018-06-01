@@ -9,14 +9,7 @@
 #include "BaseGrid.H"
 #include "TrajectoryWriter.H"
 #include "Pure.H"
-
-#define TBP 32
-
-__global__
-void hello(char *a, int *b)
-{
-  a[threadIdx.x] += b[threadIdx.x];
-}
+#include <omp.h>
 
 int main(int argc, char* argv[]) {
   if (argc != 12) {
@@ -52,6 +45,7 @@ int main(int argc, char* argv[]) {
   const int n = initCoord.length();
   Vector3* pos = new Vector3[n];
   Vector3* force = new Vector3[n];
+  Vector3* randoms = new Vector3[n];
   int* type = new int[n];
   // Initialize positions.
   for (int i = 0; i < n; i++) {
@@ -104,18 +98,26 @@ int main(int argc, char* argv[]) {
   long int s;
   for (s = 1; s <= steps; s++) {
     // Get the force of the environment.
+    #pragma omp parallel for
     for (int i = 0; i < n; i++) force[i] = sysEnergy.interpolateForce(pos[i]);
+
+    #pragma omp single
+    {
+      for (int i = 0; i < n; i++){
+        randoms[i] = rando.gaussian_vector();
+      }
+    }
 
     // Particle-particle interactions.
     dim3 grid(numSMs, 32, 1);
     dim3 block(16, 16, 1);
 
     // Copy to device
-    cudaMemcpy(dev_force, force, n, cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_pos, pos, n, cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_v1, v1, interact_n, cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_v2, v2, interact_n, cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_v3, v3, interact_n, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_force, force, sizeof(Vector3) * n, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_pos, pos, sizeof(Vector3) * n, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_v1, v1, sizeof(double) * interact_n, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_v2, v2, sizeof(double) * interact_n, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_v3, v3, sizeof(double) * interact_n, cudaMemcpyHostToDevice);
 
     doComputeCuda<<<grid,block>>>(
             dev_force,
@@ -137,19 +139,20 @@ int main(int argc, char* argv[]) {
             s
     );
 
-    cudaMemcpy(force, dev_force, n, cudaMemcpyDeviceToHost);
-    cudaMemcpy(pos, dev_pos, n, cudaMemcpyDeviceToHost);
-    cudaMemcpy(v1, dev_v1, interact_n, cudaMemcpyDeviceToHost);
-    cudaMemcpy(v2, dev_v2, interact_n, cudaMemcpyDeviceToHost);
-    cudaMemcpy(v3, dev_v3, interact_n, cudaMemcpyDeviceToHost);
+    cudaMemcpy(force, dev_force, sizeof(Vector3) * n, cudaMemcpyDeviceToHost);
+    cudaMemcpy(pos, dev_pos, sizeof(Vector3) * n, cudaMemcpyDeviceToHost);
+    cudaMemcpy(v1, dev_v1, sizeof(double) * interact_n, cudaMemcpyDeviceToHost);
+    cudaMemcpy(v2, dev_v2, sizeof(double) * interact_n, cudaMemcpyDeviceToHost);
+    cudaMemcpy(v3, dev_v3, sizeof(double) * interact_n, cudaMemcpyDeviceToHost);
 
     // Update position.
+    #pragma omp parallel for
     for (int i = 0; i < n; i++) {
       double diffuse = sysDiffuse.interpolatePotential(pos[i]);
       Vector3 diffGrad = -sysDiffuse.interpolateForce(pos[i]);
 
       // Get the random kick.
-      Vector3 dr = rando.gaussian_vector();
+      Vector3 dr = randoms[i];
 
       // Perform the Brownian Dynamics step.
       Vector3 r = pos[i] + beta*force[i]*diffuse*dt + diffGrad*dt + sqrt(2*diffuse*dt)*dr;
@@ -183,6 +186,7 @@ int main(int argc, char* argv[]) {
 
   delete[] pos;
   delete[] force;
+  delete[] randoms;
   delete[] type;
   delete[] typeName;
 

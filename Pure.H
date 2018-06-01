@@ -1,6 +1,14 @@
 #ifndef PURE_H
 #define PURE_H
 
+#ifdef __CUDACC__
+#define __HOSTDEVICE__ __host__ __device__
+#else
+#define __HOSTDEVICE__
+#endif
+
+
+__HOSTDEVICE__
 double pureWrapDiff(double x, double l) {
   int image = int(floor(x/l));
   x -= image*l;
@@ -8,6 +16,7 @@ double pureWrapDiff(double x, double l) {
   return x;
 }
 
+__HOSTDEVICE__
 Vector3 pureWrapDiff(Vector3 r, Matrix3 basis, Matrix3 basisInv, int nx, int ny, int nz) {
   Vector3 l = basisInv.transform(r);
   l.x = pureWrapDiff(l.x, nx);
@@ -19,15 +28,18 @@ Vector3 pureWrapDiff(Vector3 r, Matrix3 basis, Matrix3 basisInv, int nx, int ny,
 
 // ------------------------
 
+__HOSTDEVICE__
 inline double pureWrapReal(double x, double l) {
   int image = int(floor(x/l));
   return x - image*l;
 }
 
+__HOSTDEVICE__
 double pureWrap(double x, double r0, double dl) {
   return pureWrapReal(x-r0, dl) + r0;
 }
 
+__HOSTDEVICE__
 double pureComputeGrad(double d, bool periodic, double r0, double dl, double dr, int n, double v1[], double v2[], double v3[]) {
   int home;
 
@@ -87,7 +99,48 @@ void doCompute(
 }
 
 
-__global__ void doComputeCuda(int s, int n){
+template <typename T>
+T *CopyArrayToGPU(T *HostArray, int NumElements)
+{
+  int bytes = sizeof(T) * NumElements;
+  void *DeviceArray;
+
+  if (cudaMalloc(&DeviceArray, bytes) != cudaSuccess)
+  {
+    printf("CopyArrayToGPU(): Couldn't allocate mem for array on GPU.");
+    return NULL;
+  }
+
+  if (cudaMemcpy(DeviceArray, HostArray, bytes, cudaMemcpyHostToDevice) != cudaSuccess)
+  {
+    printf("CopyArrayToGPU(): Couldn't copy host array to GPU.");
+    cudaFree(DeviceArray);
+    return NULL;
+  }
+
+  return (T *) DeviceArray;
+}
+
+__global__ void doComputeCuda(
+        Vector3 *force,
+        Vector3 *pos,
+        Matrix3 basis,
+        Matrix3 basisInv,
+        int nx,
+        int ny,
+        int nz,
+        bool periodic,
+        double r0,
+        double dl,
+        double dr,
+        int interact_n,
+        double *v1,
+        double *v2,
+        double *v3,
+        int n,
+        int step
+)
+{
   int x_index = blockIdx.x * blockDim.x + threadIdx.x;
   int y_index = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -100,10 +153,20 @@ __global__ void doComputeCuda(int s, int n){
     for (int j = y_index; j < n; j += blockDim.y * gridDim.y)
     {
       if (i != j)
-      printf("Step: %d\tblockIdx: %d,%d\ttheadIdx: %d,%d,%d\tIndex: %d, %d\n", s, blockIdx.x, blockIdx.y, threadIdx.x, threadIdx.y, threadIdx.z, j, i);
+      {
+        //double length = (pos[i] - pos[j]).length();
+        //printf("Step: %d\tblockIdx: %d,%d\ttheadIdx: %d,%d,%d\tIndex: %d, %d\tDistance: %f\n",
+        //    step, blockIdx.x, blockIdx.y, threadIdx.x, threadIdx.y, threadIdx.z, j, i, length );
+
+        Vector3 d = pureWrapDiff(pos[i] - pos[j], basis, basisInv, nx, ny, nz);
+        double dist = d.length();
+        double fMag = -pureComputeGrad(dist, periodic, r0, dl, dr, interact_n, v1, v2, v3);
+        Vector3 f = fMag / dist * d;
+        force[i] += f;
+        force[j] -= f;
+      }
     }
   }
-
 }
 
 #endif

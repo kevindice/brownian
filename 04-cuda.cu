@@ -113,6 +113,12 @@ int main(int argc, char* argv[]) {
   // Start cuda setup
   int numSMs;
   cudaDeviceGetAttribute(&numSMs, cudaDevAttrMultiProcessorCount, 0);
+
+  Vector3 *dev_force = CopyArrayToGPU<Vector3>(force, n);
+  Vector3 *dev_pos = CopyArrayToGPU<Vector3>(pos, n);
+  double *dev_v1 = CopyArrayToGPU<double>(v1, interact_n);
+  double *dev_v2 = CopyArrayToGPU<double>(v2, interact_n);
+  double *dev_v3 = CopyArrayToGPU<double>(v3, interact_n);
   // end cuda setup
 
 
@@ -124,12 +130,17 @@ int main(int argc, char* argv[]) {
     // Particle-particle interactions.
     dim3 grid(numSMs, 32, 1);
     dim3 block(16, 16, 1);
-    doComputeCuda<<<grid,block>>>(s, n);
-    cudaDeviceSynchronize();
 
-    doCompute(
-            force,
-            pos,
+    // Copy to device
+    cudaMemcpy(dev_force, force, n, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_pos, pos, n, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_v1, v1, interact_n, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_v2, v2, interact_n, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_v3, v3, interact_n, cudaMemcpyHostToDevice);
+
+    doComputeCuda<<<grid,block>>>(
+            dev_force,
+            dev_pos,
             basis,
             basisInv,
             nx,
@@ -140,12 +151,18 @@ int main(int argc, char* argv[]) {
             dl,
             dr,
             interact_n,
-            v1,
-            v2,
-            v3,
-            n
+            dev_v1,
+            dev_v2,
+            dev_v3,
+            n,
+            s
     );
 
+    cudaMemcpy(force, dev_force, n, cudaMemcpyDeviceToHost);
+    cudaMemcpy(pos, dev_pos, n, cudaMemcpyDeviceToHost);
+    cudaMemcpy(v1, dev_v1, interact_n, cudaMemcpyDeviceToHost);
+    cudaMemcpy(v2, dev_v2, interact_n, cudaMemcpyDeviceToHost);
+    cudaMemcpy(v3, dev_v3, interact_n, cudaMemcpyDeviceToHost);
 
     // Update position.
     for (int i = 0; i < n; i++) {
@@ -170,9 +187,20 @@ int main(int argc, char* argv[]) {
 
   // start cuda teardown
   cudaDeviceSynchronize();
-  // end cuda teardown
+  cudaError_t error = cudaGetLastError();
+  if(error != cudaSuccess)
+  {
+    // print the CUDA error message and exit
+    printf("CUDA error: %s\n", cudaGetErrorString(error));
+    exit(-1);
+  }
 
-  printf("Number of SMs: %d\n", numSMs);
+  cudaFree(dev_force);
+  cudaFree(dev_pos);
+  cudaFree(dev_v1);
+  cudaFree(dev_v2);
+  cudaFree(dev_v3);
+  // end cuda teardown
 
   delete[] pos;
   delete[] force;

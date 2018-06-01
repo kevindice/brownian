@@ -13,6 +13,12 @@
 #ifndef PIECEWISE1D_H
 #define PIECEWISE1D_H
 
+#ifdef __CUDACC__
+#define __HOSTDEVICE__ __host__ __device__
+#else
+#define __HOSTDEVICE__
+#endif
+
 #include "useful.H"
 #include "Field.H"
 
@@ -337,6 +343,7 @@ public:
     return r<0 ? r+n : r;
   }
 
+  __HOSTDEVICE__
   double wrap(double x) const {
     return wrapReal(x-r0, dl) + r0;
   }

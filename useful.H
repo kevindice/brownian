@@ -14,6 +14,13 @@
 #ifndef USEFUL_H
 #define USEFUL_H
 
+#ifdef __CUDACC__
+#define __HOSTDEVICE__ __host__ __device__
+#else
+#define __HOSTDEVICE__
+#endif
+
+
 #include <cmath>
 #include <cstring>
 #include <cstdio>
@@ -385,11 +392,13 @@ private:
 //
 class Vector3 {
 public:
+  __HOSTDEVICE__
   Vector3() {}
 
   Vector3(double s):x(s), y(s), z(s) {
   }
 
+  __HOSTDEVICE__
   Vector3(const Vector3& v):x(v.x), y(v.y), z(v.z) {
   }
   
@@ -420,13 +429,15 @@ public:
     return *this;
   }
 
+  __HOSTDEVICE__
   Vector3& operator+=(const Vector3& v) {
     x += v.x;
     y += v.y;
     z += v.z;
     return *this;
   }
-  
+
+  __HOSTDEVICE__
   Vector3& operator-=(const Vector3& v) {
     x -= v.x;
     y -= v.y;
@@ -464,6 +475,7 @@ public:
     return v;
   }
 
+  __HOSTDEVICE__
   Vector3 operator-(const Vector3& w ) const {
     Vector3 v;
     v.x = x - w.x;
@@ -471,7 +483,8 @@ public:
     v.z = z - w.z;
     return v;
   }
-  
+
+  __HOSTDEVICE__
   Vector3 operator*(double s) const {
     Vector3 v;
     v.x = s*x;
@@ -496,6 +509,8 @@ public:
     double d = length();
     return Vector3(x/d,y/d,z/d);
   }
+
+  __HOSTDEVICE__
   double length() const { return sqrt(x*x + y*y + z*z); }
   double length2() const { return x*x + y*y + z*z; }
   String toString() const {
@@ -506,6 +521,7 @@ public:
   double x,y,z;
 };
 
+__HOSTDEVICE__
 Vector3 operator*(double s, Vector3 v) {
   v.x *= s;
   v.y *= s;
@@ -671,6 +687,7 @@ public:
     return exx*(eyy*ezz-eyz*ezy) - exy*(eyx*ezz-eyz*ezx) + exz*(eyx*ezy-eyy*ezx);
   }
 
+ __HOSTDEVICE__
  Vector3 transform(const Vector3& v) const {
    Vector3 w;
    w.x = exx*v.x + exy*v.y + exz*v.z;

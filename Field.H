@@ -14,6 +14,12 @@
 #ifndef FIELD_H
 #define FIELD_H
 
+#ifdef __CUDACC__
+#define __HOSTDEVICE__ __host__ __device__
+#else
+#define __HOSTDEVICE__
+#endif
+
 #include "useful.H"
 
 class Field {
@@ -144,6 +150,7 @@ public:
   }
 
   // Static wrapping of floating point values, whether the field is periodic or not.
+  __HOSTDEVICE__
   inline static double wrapReal(double x, double l) {
     int image = int(floor(x/l));
     return x - image*l;

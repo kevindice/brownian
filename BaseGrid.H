@@ -4,6 +4,12 @@
 #ifndef BASEGRID_H
 #define BASEGRID_H
 
+#ifdef __CUDACC__
+#define __HOSTDEVICE__ __host__ __device__
+#else
+#define __HOSTDEVICE__
+#endif
+
 #include "useful.H"
 #include <cmath>
 #include <cstring>
@@ -627,6 +633,7 @@ public:
     return val[j];
   }
 
+  __HOSTDEVICE__
   virtual double interpolatePotential(Vector3 pos) const {
     // Find the home node.
     Vector3 l = basisInv.transform(pos - origin);
@@ -1070,6 +1077,7 @@ public:
     return x;
   }
 
+  __HOSTDEVICE__
   static int wrap(int i, int n) {
     if (i < 0) {
       i %= n;

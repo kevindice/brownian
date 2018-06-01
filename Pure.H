@@ -152,7 +152,7 @@ __global__ void doComputeCuda(
   {
     for (int j = y_index; j < n; j += blockDim.y * gridDim.y)
     {
-      if (i != j)
+      if (i > j)
       {
         //double length = (pos[i] - pos[j]).length();
         //printf("Step: %d\tblockIdx: %d,%d\ttheadIdx: %d,%d,%d\tIndex: %d, %d\tDistance: %f\n",

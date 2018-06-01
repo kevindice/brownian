@@ -188,11 +188,6 @@ __global__ void doAllComputeCuda(
         double *v1,
         double *v2,
         double *v3,
-        BaseGrid sysEnergy,
-        BaseGrid sysDiffuse,
-        Vector3 *randoms,
-        double beta,
-        double dt,
         int n,
         int step
 )
@@ -200,15 +195,9 @@ __global__ void doAllComputeCuda(
   int x_index = blockIdx.x * blockDim.x + threadIdx.x;
   int y_index = blockIdx.y * blockDim.y + threadIdx.y;
 
-  for (int i = x_index; i < n; i += blockDim.x * gridDim.x)
-  {
-    force[i] = sysEnergy.interpolateForce(pos[i]);
-  }
-
   /* 2 Dimensional grid stride loop //
      1D Case discussed here:  https://devblogs.nvidia.com/cuda-pro-tip-write-flexible-kernels-grid-stride-loops
      2D example here:  https://stackoverflow.com/questions/22593936/cuda-grid-stride-loops-over-2d-arrays */
-
 
   for (int i = x_index; i < n; i += blockDim.x * gridDim.x)
   {
@@ -228,22 +217,6 @@ __global__ void doAllComputeCuda(
         force[j] -= f;
       }
     }
-  }
-
-  // Update positions
-  for (int i = x_index; i < n; i += blockDim.x * gridDim.x)
-  {
-    double diffuse = sysDiffuse.interpolatePotential(pos[i]);
-      Vector3 diffGrad = -sysDiffuse.interpolateForce(pos[i]);
-
-      // Get the random kick.
-      Vector3 dr = randoms[i];
-
-      // Perform the Brownian Dynamics step.
-      Vector3 r = pos[i] + beta*force[i]*diffuse*dt + diffGrad*dt + sqrt(2*diffuse*dt)*dr;
-
-      // Wrap boundaries.
-      pos[i] = sysEnergy.wrap(r);
   }
 }
 
